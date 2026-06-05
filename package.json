@@ -1,0 +1,32 @@
+{
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@types/ali-oss": "^6.23.3",
+    "vite": "^8.0.16",
+    "vite-plugin-ruby": "^5.2.2"
+  },
+  "dependencies": {
+    "@inertiajs/react": "^3.3.0",
+    "@inertiajs/vite": "^3.3.0",
+    "@rails/actiontext": "^8.1.300",
+    "@rails/activestorage": "^8.1.300",
+    "@tailwindcss/forms": "^0.5.11",
+    "@tailwindcss/typography": "^0.5.19",
+    "@tailwindcss/vite": "^4.3.0",
+    "@types/react": "^19.2.16",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "ali-oss": "^6.23.0",
+    "axios": "^1.17.0",
+    "hls.js": "^1.6.16",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "tailwindcss": "^4.3.0",
+    "trix": "^2.1.19",
+    "typescript": "^6.0.3"
+  },
+  "scripts": {
+    "check": "tsc -p tsconfig.app.json && tsc -p tsconfig.node.json"
+  }
+}

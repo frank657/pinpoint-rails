@@ -1,0 +1,2 @@
+class CoursePolicy < WorkspaceScopedPolicy
+end

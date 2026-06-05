@@ -1,0 +1,2 @@
+class PositionPolicy < WorkspaceScopedPolicy
+end

@@ -1,14 +1,25 @@
 Rails.application.routes.draw do
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  # Health check (reachable on every host).
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
+  # In development, redirect 127.0.0.1 → localhost so the browser shares an IP with the
+  # Vite dev server. (Subdomain dev uses *.lvh.me, which already resolves to 127.0.0.1.)
+  constraints(host: "127.0.0.1") do
+    get "(*path)", to: redirect { |params, req| "#{req.protocol}localhost:#{req.port}/#{params[:path]}" }
+  end
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  # app.<domain> — the authenticated user product (Inertia + React).
+  constraints(SubdomainConstraint.app) do
+    draw(:app)
+  end
+
+  # admin.<domain> — the admin panel (Inertia + React, admin-only).
+  constraints(SubdomainConstraint.admin) do
+    draw(:admin)
+  end
+
+  # apex + www — marketing / landing (public).
+  constraints(SubdomainConstraint.apex) do
+    draw(:landing)
+  end
 end

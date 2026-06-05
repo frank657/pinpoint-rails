@@ -1,0 +1,2 @@
+class FolderPolicy < WorkspaceScopedPolicy
+end

@@ -1,0 +1,2 @@
+class CurriculumPolicy < WorkspaceScopedPolicy
+end
