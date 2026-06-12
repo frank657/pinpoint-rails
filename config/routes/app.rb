@@ -18,37 +18,33 @@ scope module: :app, as: :app do
   resources :workspaces, only: %i[index create update destroy]
   post "workspaces/:id/switch", to: "workspaces#switch", as: :switch_workspace
 
-  resources :videos, only: %i[index show destroy] do
-    get :status, on: :member
-    get :summary, on: :member
+  resources :videos, only: %i[index show create update destroy] do
+    get  :status,    on: :member
+    get  :summary,   on: :member
     post "flashcard", to: "videos#accept_flashcard", on: :member
-    post "transcript", to: "transcripts#create", on: :member
+    post "transcript", to: "transcripts#create",     on: :member
   end
-  get "search", to: "search#index"
+  get "search",       to: "search#index"
+  get "search/query", to: "search#query"
   post "videos/youtube", to: "videos#create_youtube", as: :youtube_videos
-  post "videos/upload",  to: "videos/uploads#create", as: :video_uploads
+
+  # Direct-upload flow (ADR 0007): provision → upload to OSS → poll → create Video.
+  post "vod/direct_uploads",          to: "vod/direct_uploads#create", as: :vod_direct_uploads
+  get  "vod/status/:signed_id",       to: "vod/direct_uploads#status", as: :vod_status
 
   resources :notes, only: %i[index new create update destroy]
   resources :categories, only: %i[index create update destroy]
   resources :tags, only: %i[index]
   resources :segments, only: %i[create update destroy]
 
-  resources :courses, only: %i[index show create update destroy] do
-    resources :chapters, only: %i[create update destroy], module: :courses
-    resources :items, only: %i[create update destroy], module: :courses do
+  resources :notebooks, only: %i[index show create update destroy] do
+    resources :chapters, only: %i[create update destroy], module: :notebooks
+    resources :items, only: %i[create update destroy], module: :notebooks do
       post :reorder, on: :collection
     end
   end
-  resources :curriculums, only: %i[index show create update destroy] do
-    resources :items, only: %i[create destroy], module: :curriculums do
-      post :reorder, on: :collection
-    end
-  end
-  resources :folders, only: %i[index create update destroy]
 
   post "progress", to: "progress#upsert"
-
-  resources :training_sessions, only: %i[index create destroy]
 
   resources :positions, only: %i[index show create] do
     post :seed, on: :collection

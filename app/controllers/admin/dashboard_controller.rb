@@ -8,8 +8,7 @@ module Admin
           videos: Video.count,
           vods: Vod.count,
           notes: Note.count,
-          courses: Course.count,
-          curriculums: Curriculum.count
+          notebooks: Notebook.count
         }
       }
     end

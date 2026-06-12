@@ -10,7 +10,6 @@ class Note < ApplicationRecord
 
   belongs_to :video, optional: true
   belongs_to :category, optional: true
-  belongs_to :folder, optional: true
   belongs_to :created_by, class_name: "User", optional: true
   has_and_belongs_to_many :tags, join_table: :note_tags
   has_and_belongs_to_many :positions, join_table: :note_positions

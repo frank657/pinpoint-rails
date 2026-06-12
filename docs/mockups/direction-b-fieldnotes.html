@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pinpoint · Direction B — Field Notes (YouTube layout)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Spline+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f6f1e7; --paper-2:#fbf7ee; --card:#fffdf8; --edge:#e7dfcf;
+    --ink:#2a2722; --ink-2:#5c554a; --faint:#938a78;
+    --vermillion:#c5421f; --vermillion-2:#e1623a; --sage:#5d7a5a; --gold:#b58a2e;
+    --rule:#e3dac8;
+    --pt:#5d7a5a; --rg:#b58a2e; --cz:#c5421f;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--paper);color:var(--ink);font-family:"Spline Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.55;
+    background-image:radial-gradient(circle at 1px 1px, rgba(0,0,0,.018) 1px, transparent 0);background-size:22px 22px}
+  a{color:inherit;text-decoration:none}
+  .serif{font-family:"Newsreader",Georgia,serif}
+
+  header{position:sticky;top:0;z-index:50;height:60px;display:flex;align-items:center;gap:18px;padding:0 24px;background:var(--paper);border-bottom:1.5px solid var(--ink)}
+  .logo{font-family:"Newsreader";font-weight:600;font-size:23px}
+  .logo .d{color:var(--vermillion)}
+  .search{flex:1;max-width:520px;margin:0 auto;display:flex;align-items:center;background:var(--card);border:1px solid var(--edge);border-radius:999px;padding:9px 17px;color:var(--faint);font-size:14px;font-family:"Newsreader";font-style:italic}
+  .search::after{content:"⌕";margin-left:auto;font-style:normal;color:var(--ink-2);font-size:16px}
+  .barr{display:flex;align-items:center;gap:12px;margin-left:auto}
+  .ghost{font-size:13px;color:var(--ink-2);border:1px solid var(--edge);border-radius:999px;padding:6px 13px}
+  .ava{width:33px;height:33px;border-radius:50%;background:conic-gradient(from 210deg,var(--vermillion),var(--gold),var(--sage));display:grid;place-items:center;font-size:12px;color:#fff;font-weight:700}
+
+  .yt{max-width:1560px;margin:0 auto;padding:24px;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:28px;align-items:start}
+  @media(max-width:1080px){.yt{grid-template-columns:1fr}}
+
+  .player{position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:16/9;
+    box-shadow:0 30px 70px -42px rgba(60,40,20,.5);border:1px solid var(--edge)}
+  .player .scene{position:absolute;inset:0;background:linear-gradient(135deg,#c7b393,#a98f6e 55%,#5f4c34);display:grid;place-items:center}
+  .player .big{width:80px;height:80px;border-radius:50%;background:rgba(255,253,248,.92);display:grid;place-items:center;cursor:pointer;transition:.2s;box-shadow:0 12px 30px rgba(0,0,0,.28)}
+  .player .big:hover{transform:scale(1.06)}
+  .player .big::after{content:"";border-left:20px solid var(--ink);border-top:12px solid transparent;border-bottom:12px solid transparent;margin-left:5px}
+  .stamp{position:absolute;left:16px;top:14px;font-family:"Newsreader";font-style:italic;font-size:13.5px;color:#fff;background:rgba(42,39,34,.5);padding:3px 11px;border-radius:6px}
+  .ctrl{position:absolute;left:0;right:0;bottom:0;padding:0 14px 11px;background:linear-gradient(180deg,transparent,rgba(20,14,8,.5))}
+  .bar-line{position:relative;height:4px;border-radius:4px;background:rgba(255,255,255,.32);margin-bottom:11px;cursor:pointer}
+  .bar-line .f{position:absolute;left:0;top:0;bottom:0;width:30%;background:var(--vermillion);border-radius:4px}
+  .bar-line .f::after{content:"";position:absolute;right:-7px;top:50%;width:14px;height:14px;border-radius:50%;background:var(--vermillion);transform:translateY(-50%);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+  .pin{position:absolute;top:50%;width:10px;height:10px;border-radius:50%;background:var(--c);border:2px solid #fffdf8;transform:translate(-50%,-50%);cursor:pointer}
+  .pin span{position:absolute;bottom:15px;left:50%;transform:translateX(-50%);white-space:nowrap;font-family:"Newsreader";font-size:11.5px;color:#fff;background:var(--ink);padding:2px 8px;border-radius:5px;opacity:0;transition:.15s;pointer-events:none}
+  .pin:hover span{opacity:1}
+  .ctrl .row{display:flex;align-items:center;gap:16px;color:#fff}
+  .ctrl .ic{font-size:16px;opacity:.92;cursor:pointer}
+  .ctrl .time{font-family:"Newsreader";font-variant-numeric:tabular-nums;font-size:12.5px;opacity:.92}
+  .ctrl .sp{margin-left:auto}
+
+  h1{font-family:"Newsreader";font-weight:500;font-size:30px;line-height:1.12;margin:16px 0 11px;letter-spacing:-.012em}
+  .metarow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .chan{display:flex;align-items:center;gap:11px}
+  .chan .pic{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#c7b393,#5f4c34)}
+  .chan .nm{font-family:"Newsreader";font-weight:600;font-size:16px}
+  .chan .sub{font-size:12.5px;color:var(--faint)}
+  .chan .follow{margin-left:8px;background:var(--ink);color:var(--card);font-size:13px;font-weight:600;border-radius:999px;padding:8px 16px;cursor:pointer}
+  .actions{display:flex;gap:9px;margin-left:auto;flex-wrap:wrap}
+  .act{display:flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--edge);border-radius:999px;padding:8px 15px;font-size:13.5px;cursor:pointer;transition:.15s}
+  .act:hover{border-color:var(--ink)}
+  .act.primary{background:var(--vermillion);color:#fff;border:none}
+
+  .desc{margin-top:16px;background:var(--card);border:1px solid var(--edge);border-radius:12px;padding:15px 18px}
+  .desc .stats{font-size:14px;font-weight:600}
+  .desc .stats span{color:var(--faint);font-weight:400}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+  .ch{display:flex;gap:8px;align-items:center;padding:6px 12px;border:1px solid var(--edge);border-radius:9px;font-size:12.5px;color:var(--ink-2);cursor:pointer;background:var(--paper-2)}
+  .ch:hover{border-color:var(--vermillion);color:var(--ink)}
+  .ch.on{border-color:var(--vermillion);color:var(--ink);background:#fff}
+  .ch time{font-family:"Newsreader";color:var(--vermillion)}
+  .ai{margin-top:12px;border-left:3px solid var(--gold);background:var(--paper-2);border-radius:0 9px 9px 0;padding:12px 15px}
+  .ai .k{font-family:"Newsreader";font-style:italic;font-size:13px;color:var(--faint)}
+  .ai p{margin:6px 0 0;font-family:"Newsreader";font-size:16px;color:var(--ink-2);line-height:1.5}
+  .fc{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--edge);border-radius:9px;padding:6px 12px;margin:11px 8px 0 0;background:var(--card);font-size:13px;font-family:"Newsreader"}
+  .fc b{color:var(--vermillion);cursor:pointer;font-family:"Spline Sans";font-size:12px}
+
+  /* ===== FLOATING NOTES PANEL ===== */
+  .rail{position:sticky;top:76px;display:flex;flex-direction:column;gap:18px}
+  .notes{background:var(--card);border:1px solid var(--edge);border-radius:13px;box-shadow:0 26px 52px -30px rgba(60,40,20,.55);overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 98px)}
+  .nhead{display:flex;align-items:center;gap:10px;padding:13px 15px;border-bottom:1px solid var(--rule)}
+  .nhead .ttl{display:flex;align-items:center;gap:7px;font-family:"Newsreader";font-weight:600;font-size:17px;cursor:pointer}
+  .nhead .ttl .cv{color:var(--faint);font-size:12px}
+  .nhead .cnt{font-family:"Newsreader";font-size:12.5px;color:var(--vermillion);background:rgba(197,66,31,.1);border-radius:999px;padding:1px 9px}
+  .nhead .ics{margin-left:auto;display:flex;gap:13px;color:var(--ink-2);font-size:15px}
+  .nhead .ics span{cursor:pointer}
+  .ntabs{display:flex;gap:20px;padding:10px 16px 0;border-bottom:1px solid var(--rule);font-size:13.5px}
+  .ntab{padding-bottom:10px;color:var(--ink-2);font-weight:600;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+  .ntab.on{color:var(--vermillion);border-bottom-color:var(--vermillion)}
+  .nbody{overflow-y:auto;padding:6px 8px;flex:1}
+  .nbody::-webkit-scrollbar{width:9px} .nbody::-webkit-scrollbar-thumb{background:var(--rule);border-radius:9px;border:2px solid var(--card)}
+
+  .note{display:flex;gap:11px;padding:11px 9px;border-bottom:1px solid var(--rule);cursor:pointer;transition:.13s}
+  .note:hover{background:var(--paper-2)} .note:last-child{border:0}
+  .note .ts{flex:none;font-family:"Newsreader";font-variant-numeric:tabular-nums;font-size:12.5px;color:#fff;background:var(--c);height:fit-content;padding:2px 8px;border-radius:5px}
+  .note .bd p{margin:0;font-family:"Newsreader";font-size:16px;line-height:1.42;color:var(--ink)}
+  .note .bd .mt{display:flex;gap:8px;margin-top:5px}
+  .note .bd .ty{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--c);font-weight:600;font-family:"Spline Sans"}
+  .note .bd .tg{font-size:12px;color:var(--faint);font-family:"Spline Sans"}
+  .clz{background:rgba(93,122,90,.16);border-bottom:2px solid var(--sage);padding:0 3px}
+
+  .trl{display:flex;gap:10px;padding:8px 9px;cursor:pointer;border-bottom:1px dotted var(--rule)}
+  .trl:hover .p{color:var(--vermillion)} .trl.now{background:var(--paper-2)}
+  .trl .t{font-family:"Newsreader";font-variant-numeric:tabular-nums;font-size:12px;color:var(--vermillion);width:40px;flex:none}
+  .trl .p{margin:0;font-family:"Newsreader";font-size:14.5px;color:var(--ink-2)}
+  .pane{display:none} .pane.on{display:block}
+
+  .capture{display:flex;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--rule);background:var(--paper-2)}
+  .capture .me{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--vermillion));flex:none;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700}
+  .capture .inp{flex:1;min-width:0}
+  .capture .inp .at{font-family:"Newsreader";font-style:italic;font-size:12px;color:var(--vermillion)}
+  .capture .inp .ph{font-family:"Newsreader";font-style:italic;font-size:15px;color:var(--faint)}
+  .capture .send{width:34px;height:34px;border-radius:50%;background:var(--vermillion);color:#fff;display:grid;place-items:center;flex:none;cursor:pointer;font-size:14px}
+  .modes{display:flex;gap:6px;padding:8px 14px 13px;background:var(--paper-2)}
+  .mode{font-size:12px;color:var(--ink-2);border:1px solid var(--edge);border-radius:999px;padding:3px 11px;cursor:pointer;font-family:"Newsreader"}
+  .mode.on{border-color:var(--vermillion);color:var(--ink);background:var(--card)}
+  .notes.collapsed .ntabs,.notes.collapsed .nbody,.notes.collapsed .capture,.notes.collapsed .modes{display:none}
+
+  .upnext h4{font-family:"Newsreader";font-style:italic;font-size:15px;color:var(--faint);margin:4px 4px 12px;border-bottom:1px solid var(--ink);padding-bottom:8px}
+  .un{display:flex;gap:12px;padding:9px 6px;border-bottom:1px solid var(--rule);cursor:pointer}
+  .un:hover .mt{color:var(--vermillion)}
+  .un .cov{width:128px;height:74px;border-radius:8px;background:linear-gradient(135deg,#c7b393,#5f4c34);flex:none;position:relative;overflow:hidden}
+  .un .cov .d{position:absolute;right:5px;bottom:5px;font-family:"Newsreader";font-size:11px;color:#fff;background:rgba(0,0,0,.6);padding:1px 5px;border-radius:4px}
+  .un .cov .pb{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.35)}
+  .un .cov .pb i{display:block;height:100%;background:var(--vermillion)}
+  .un .mt{font-family:"Newsreader";font-size:16px;font-weight:500;line-height:1.22}
+  .un .sb{font-size:12px;color:var(--faint);margin-top:3px}
+  .un .sb .nb{color:var(--vermillion)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Pin<span class="d">·</span>point</div>
+  <div class="search">Search videos, notes, transcripts…</div>
+  <div class="barr">
+    <span class="ghost">🔥 12-day</span>
+    <span class="ghost" style="color:var(--vermillion)">8 due</span>
+    <span class="ava">FZ</span>
+  </div>
+</header>
+
+<div class="yt">
+  <div class="primary">
+    <div class="player">
+      <div class="scene"><div class="big"></div></div>
+      <span class="stamp">12:42 — Hip-bump setup</span>
+      <div class="ctrl">
+        <div class="bar-line">
+          <div class="f"></div>
+          <div class="pin" style="left:6%;--c:var(--pt)"><span>0:42 grip</span></div>
+          <div class="pin" style="left:23%;--c:var(--rg)"><span>4:30 posture</span></div>
+          <div class="pin" style="left:48%;--c:var(--cz)"><span>12:10 hip-bump</span></div>
+          <div class="pin" style="left:74%;--c:var(--vermillion)"><span>18:45 kimura</span></div>
+        </div>
+        <div class="row">
+          <span class="ic">❚❚</span><span class="ic">⏭</span><span class="ic">🔊</span>
+          <span class="time">12:42 / 62:14</span><span class="sp"></span>
+          <span class="ic">CC</span><span class="ic">⚙</span><span class="ic">⛶</span>
+        </div>
+      </div>
+    </div>
+
+    <h1>Breaking posture &amp; the hip-bump sweep</h1>
+    <div class="metarow">
+      <div class="chan">
+        <div class="pic"></div>
+        <div><div class="nm">Marcelo G.</div><div class="sub">Closed Guard System · 9 lessons</div></div>
+        <span class="follow">Add to course</span>
+      </div>
+      <div class="actions">
+        <span class="act">♡ 864</span><span class="act">↪ Share</span>
+        <span class="act">⑂ Fork</span><span class="act primary">+ Note</span><span class="act">⋯</span>
+      </div>
+    </div>
+
+    <div class="desc">
+      <div class="stats">62:14 · HLS ready <span>· annotated by Frank · 4 notes · resumes at 12:42</span></div>
+      <div class="chips">
+        <div class="ch"><time>0:00</time>Posture control</div>
+        <div class="ch"><time>4:30</time>Grip fighting</div>
+        <div class="ch on"><time>12:10</time>Hip-bump setup</div>
+        <div class="ch"><time>18:45</time>Finishing the sweep</div>
+      </div>
+      <div class="ai">
+        <div class="k">✦ AI summary — draft, review before keeping</div>
+        <p>Secure collar and sleeve, break posture through the elbow-knee connection, then load the far hip to sweep — with a kimura counter when he posts the far hand.</p>
+        <div style="margin-top:2px">
+          <span class="fc">What kills the cross-face? → sleeve grip <b>+ Accept</b></span>
+          <span class="fc">Load which hip first? → the far hip <b>+ Accept</b></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rail">
+    <div class="notes" id="notes">
+      <div class="nhead">
+        <div class="ttl" onclick="document.getElementById('notes').classList.toggle('collapsed')">Notes <span class="cv">▾</span></div>
+        <span class="cnt">4</span>
+        <div class="ics"><span title="Pop out">⤢</span><span title="Collapse" onclick="document.getElementById('notes').classList.toggle('collapsed')">✕</span></div>
+      </div>
+      <div class="ntabs">
+        <div class="ntab on" data-t="notes">Notes</div>
+        <div class="ntab" data-t="trx">Transcript</div>
+      </div>
+      <div class="nbody">
+        <div class="pane on" data-p="notes">
+          <div class="note"><span class="ts" style="--c:var(--pt)">0:42</span><div class="bd"><p>Collar + sleeve grip beats the cross-face — kill the posting hand first.</p><div class="mt"><span class="ty" style="--c:var(--pt)">point</span><span class="tg">#grips · ↪ Closed Guard</span></div></div></div>
+          <div class="note"><span class="ts" style="--c:var(--rg)">4:30</span><div class="bd"><p>The full posture-break sequence: elbow→knee, break, then climb.</p><div class="mt"><span class="ty" style="--c:var(--rg)">range 4:30–6:10</span><span class="tg">#posture</span></div></div></div>
+          <div class="note"><span class="ts" style="--c:var(--cz)">12:10</span><div class="bd"><p>Hip-bump — load the far hip first, <span class="clz">then climb the shoulder</span>.</p><div class="mt"><span class="ty" style="--c:var(--cz)">cloze · in review</span><span class="tg">#sweeps · → Mount</span></div></div></div>
+          <div class="note"><span class="ts" style="--c:var(--pt)">18:45</span><div class="bd"><p>If he posts the far hand → switch straight to kimura.</p><div class="mt"><span class="ty" style="--c:var(--pt)">point</span><span class="tg">#kimura</span></div></div></div>
+        </div>
+        <div class="pane" data-p="trx">
+          <div class="trl"><span class="t">0:38</span><p class="p">First thing — your grips. Collar and sleeve.</p></div>
+          <div class="trl now"><span class="t">0:42</span><p class="p">That sleeve grip kills his cross-face.</p></div>
+          <div class="trl"><span class="t">0:51</span><p class="p">Break posture by connecting elbow to knee.</p></div>
+          <div class="trl"><span class="t">12:10</span><p class="p">Load the far hip — don't sit up flat.</p></div>
+          <div class="trl"><span class="t">18:45</span><p class="p">If he posts, the kimura is right there.</p></div>
+        </div>
+      </div>
+      <div class="capture">
+        <span class="me">FZ</span>
+        <div class="inp"><span class="at">at 12:42 · </span><span class="ph">An idea worth keeping…</span></div>
+        <span class="send">➤</span>
+      </div>
+      <div class="modes"><span class="mode on">Point</span><span class="mode">Range</span><span class="mode">Cloze {{ }}</span></div>
+    </div>
+
+    <div class="upnext">
+      <h4>Up next in this course</h4>
+      <div class="un"><div class="cov"><span class="d">41:08</span><span class="pb"><i style="width:0"></i></span></div><div><div class="mt">Overhook control &amp; the kimura trap</div><div class="sb">Marcelo G. · Lesson 5 · <span class="nb">2 notes</span></div></div></div>
+      <div class="un"><div class="cov"><span class="d">28:51</span><span class="pb"><i style="width:100%"></i></span></div><div><div class="mt">Pendulum sweep mechanics</div><div class="sb">Marcelo G. · Lesson 3 · watched</div></div></div>
+      <div class="un"><div class="cov"><span class="d">35:20</span><span class="pb"><i style="width:40%"></i></span></div><div><div class="mt">Scissor sweep &amp; the technical stand</div><div class="sb">Marcelo G. · Lesson 6</div></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.ntab').forEach(t=>t.onclick=()=>{
+    document.querySelectorAll('.ntab').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    document.querySelector('.pane[data-p="'+t.dataset.t+'"]').classList.add('on');
+  });
+</script>
+</body>
+</html>

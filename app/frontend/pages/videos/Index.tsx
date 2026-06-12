@@ -2,7 +2,7 @@ import { Head, Link, useForm, router } from '@inertiajs/react'
 import { useRef, useState, type FormEvent } from 'react'
 import axios from 'axios'
 import AppShell from '../../components/AppShell'
-import { uploadToOss, type UploadCredentials } from '../../lib/uploadToOss'
+import { VodUploader, type UploaderState } from '../../lib/vodUploader'
 
 interface VideoSummary {
   id: number
@@ -97,27 +97,53 @@ function YoutubeForm() {
   )
 }
 
+const STATE_LABEL: Partial<Record<UploaderState, string>> = {
+  requesting: 'Preparing…',
+  uploading:  'Uploading…',
+  verifying:  'Confirming…',
+  uploaded:   'Creating video…',
+}
+
 function UploadForm() {
   const inputRef = useRef<HTMLInputElement>(null)
-  const [progress, setProgress] = useState<number | null>(null)
+  const [uploaderState, setUploaderState] = useState<UploaderState | null>(null)
+  const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
   const onFile = async (file: File) => {
     setError(null)
-    setProgress(0)
+    setUploaderState('idle')
+
+    const uploader = new VodUploader(file, {
+      filename:   file.name,
+      title:      file.name,
+      onState:    setUploaderState,
+      onProgress: setProgress,
+    })
+
     try {
-      const { data } = await axios.post<UploadCredentials & { videoId: number }>('/videos/upload', {
-        filename: file.name,
-        title: file.name,
+      // Steps 1–3: provision Vod → upload to OSS → poll until uploaded.
+      const { signedId } = await uploader.start()
+
+      // Step 4: create the Video record now that the file has landed on Aliyun.
+      const { data } = await axios.post<{ videoId: number }>('/videos', {
+        signed_id: signedId,
+        title:     file.name,
       })
-      await uploadToOss(file, data, setProgress)
-      await pollUntilProcessed(data.videoId)
       router.visit(`/videos/${data.videoId}`)
-    } catch (e) {
-      setError('Upload failed. Check your connection and try again.')
-      setProgress(null)
+    } catch {
+      if (uploader.state !== 'aborted') {
+        setError('Upload failed. Check your connection and try again.')
+      }
+      setUploaderState(null)
     }
   }
+
+  const busy = uploaderState !== null && uploaderState !== 'uploaded'
+  const label =
+    (uploaderState && STATE_LABEL[uploaderState]
+      ? `${STATE_LABEL[uploaderState]}${uploaderState === 'uploading' ? ` ${progress}%` : ''}`
+      : 'Choose a video file')
 
   return (
     <div>
@@ -130,20 +156,12 @@ function UploadForm() {
       />
       <button
         onClick={() => inputRef.current?.click()}
-        disabled={progress !== null}
+        disabled={busy}
         className="rounded-lg border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-50 disabled:opacity-50"
       >
-        {progress === null ? 'Choose a video file' : `Uploading… ${progress}%`}
+        {label}
       </button>
       {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
     </div>
   )
-}
-
-async function pollUntilProcessed(videoId: number) {
-  for (let i = 0; i < 150; i++) {
-    const { data } = await axios.get<{ status: string; playable: boolean }>(`/videos/${videoId}/status`)
-    if (data.playable || data.status !== 'uploading') return
-    await new Promise((r) => setTimeout(r, 2000))
-  }
 }

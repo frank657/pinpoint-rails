@@ -1,4 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 @plugin '@tailwindcss/typography';
 @plugin '@tailwindcss/forms';
+
+/* ─── Direction A · "Tatami" theme (iteration 0001) ───────────────────────────
+   Warm, cinematic, light. We RE-TONE the whole app by overriding Tailwind's
+   `neutral` ramp (→ warm stone) and `amber` ramp (→ ember), so every existing
+   page inherits the palette for free.
+   See docs/roadmap/iterations/0001-tatami-notebook-ui.md
+   ────────────────────────────────────────────────────────────────────────── */
+@theme {
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", Georgia, serif;
+
+  /* warm stone — replaces neutral */
+  --color-neutral-50:  #faf6ee;
+  --color-neutral-100: #f4eee4;
+  --color-neutral-200: #e9e0d1;
+  --color-neutral-300: #d8c9b2;
+  --color-neutral-400: #9b8f7f;
+  --color-neutral-500: #6e645a;
+  --color-neutral-600: #564d44;
+  --color-neutral-700: #43392f;
+  --color-neutral-800: #332b22;
+  --color-neutral-900: #2c2722;
+  --color-neutral-950: #1c1610;
+
+  /* ember — replaces amber (existing pages use amber-400 buttons, amber-600 text) */
+  --color-amber-300: #f0703a;
+  --color-amber-400: #e2571f;
+  --color-amber-500: #d24f1c;
+  --color-amber-600: #c2410c;
+  --color-amber-700: #9a3410;
+
+  /* Tatami semantic accents → bg-ember / text-gold / border-teal utilities */
+  --color-ember: #e2571f;
+  --color-ember-soft: #f0703a;
+  --color-gold: #bf8a2c;
+  --color-teal: #3a9384;
+  --color-ink: #2c2722;
+  --color-paper: #f4eee4;
+  --color-surface: #fffdf8;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-neutral-100);
+    color: var(--color-neutral-900);
+  }
+}

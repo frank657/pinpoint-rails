@@ -1,6 +1,7 @@
-import { Head, Link, useForm } from '@inertiajs/react'
-import { useRef, useEffect, useState } from 'react'
+import { Head, Link, router, useForm } from '@inertiajs/react'
+import { useRef, useEffect, useState, useCallback } from 'react'
 import axios from 'axios'
+import { PencilSimple, Check, X } from '@phosphor-icons/react'
 import AppShell from '../../components/AppShell'
 import VideoPlayer, { type Playback, type PlayerHandle } from '../../components/VideoPlayer'
 import NotesPanel, { type Note } from '../../components/NotesPanel'
@@ -66,7 +67,7 @@ export default function VideoShow({
     <AppShell>
       <Head title={`${video.title} · Pinpoint`} />
       <Link href="/videos" className="text-sm text-neutral-500 hover:text-neutral-900">← All videos</Link>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight">{video.title}</h1>
+      <VideoTitle videoId={video.id} title={video.title} />
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
         <div>
@@ -202,5 +203,49 @@ function TranscriptSection({ videoId, transcript, onSeek }: { videoId: number; t
         </form>
       )}
     </section>
+  )
+}
+
+function VideoTitle({ videoId, title }: { videoId: number; title: string }) {
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState(title)
+
+  const submit = useCallback(() => {
+    const trimmed = value.trim()
+    if (!trimmed || trimmed === title) { setEditing(false); setValue(title); return }
+    router.patch(`/videos/${videoId}`, { title: trimmed }, { onSuccess: () => setEditing(false) })
+  }, [videoId, value, title])
+
+  if (editing) {
+    return (
+      <div className="mt-2 flex items-center gap-2">
+        <input
+          autoFocus
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') { setEditing(false); setValue(title) } }}
+          className="flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-2xl font-semibold tracking-tight focus:border-ember focus:outline-none"
+        />
+        <button onClick={submit} className="flex items-center gap-1 rounded-lg bg-ember px-3 py-2 text-sm font-medium text-white hover:bg-amber-500">
+          <Check size={14} weight="bold" /> Save
+        </button>
+        <button onClick={() => { setEditing(false); setValue(title) }} className="rounded-lg p-2 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700">
+          <X size={14} weight="bold" />
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="group mt-2 flex items-center gap-2">
+      <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+      <button
+        onClick={() => setEditing(true)}
+        className="rounded-md p-1 text-neutral-300 opacity-0 transition hover:text-neutral-600 group-hover:opacity-100"
+        title="Rename"
+      >
+        <PencilSimple size={16} />
+      </button>
+    </div>
   )
 }

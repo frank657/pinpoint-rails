@@ -12,11 +12,9 @@ module App
 
     def content_path(obj)
       case obj
-      when Course      then app_course_path(obj)
-      when Curriculum  then app_curriculum_path(obj)
-      when Video       then app_video_path(obj)
-      when Folder      then app_folders_path
-      when Note        then app_notes_path
+      when Notebook then app_notebook_path(obj)
+      when Video    then app_video_path(obj)
+      when Note     then app_notes_path
       else app_root_path
       end
     end

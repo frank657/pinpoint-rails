@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pinpoint · UI Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#f4f0e9;--card:#ffffff;--line:rgba(30,26,20,.11);--ink:#221f1a;--muted:#6c6258;--faint:#9b9082;--accent:#e2571f}
+  *{box-sizing:border-box}
+  body{margin:0;background:
+    radial-gradient(900px 460px at 80% -10%,rgba(226,87,31,.10),transparent 60%),var(--bg);
+    color:var(--ink);font-family:"Hanken Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 28px}
+  header{padding:64px 0 30px}
+  .ey{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  h1{font-family:"Fraunces";font-weight:500;font-size:44px;line-height:1.05;margin:.3em 0 .25em;letter-spacing:-.015em}
+  .lede{color:var(--muted);font-size:17px;max-width:680px;line-height:1.55}
+  .lede b{color:var(--ink);font-weight:600}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:14px 0 30px}
+  @media(max-width:880px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;transition:.2s}
+  .card:hover{transform:translateY(-4px);border-color:rgba(30,26,20,.24)}
+  .swatch{height:108px;display:flex;align-items:flex-end;padding:12px;gap:6px;position:relative;border-bottom:1px solid var(--line)}
+  .swatch .tag{position:absolute;top:11px;left:12px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+  .sw-a{background:radial-gradient(120% 120% at 78% 8%,#f7e6d3,#f1e3cd 60%,#ecdcc2)}
+  .sw-b{background:#f6f1e7;background-image:radial-gradient(circle at 1px 1px,rgba(0,0,0,.05) 1px,transparent 0);background-size:14px 14px}
+  .sw-c{background:linear-gradient(135deg,#f1f4f8,#e4e9ef)}
+  .dotrow{display:flex;gap:6px}
+  .dotrow i{width:22px;height:22px;border-radius:6px;border:1px solid rgba(30,26,20,.14)}
+  .body{padding:18px 18px 20px;display:flex;flex-direction:column;gap:10px;flex:1}
+  .name{font-family:"Fraunces";font-size:22px;font-weight:500}
+  .name span{color:var(--faint);font-size:13px;font-family:"Hanken Grotesk"}
+  .desc{color:var(--muted);font-size:14px;line-height:1.5}
+  .ux{font-size:13px;color:var(--ink);background:rgba(30,26,20,.035);border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+  .ux b{color:var(--accent)}
+  .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+  .meta span{font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 9px}
+  .open{margin-top:auto;display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14px;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 14px;justify-content:center;transition:.16s}
+  .open:hover{background:#fff;color:#111;border-color:#fff}
+  .note{color:var(--faint);font-size:13px;border-top:1px solid var(--line);margin-top:10px;padding:22px 0 60px;line-height:1.6}
+  .note b{color:var(--muted)}
+  .shared{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:6px 0 8px}
+  @media(max-width:880px){.shared{grid-template-columns:repeat(2,1fr)}}
+  .feat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px}
+  .feat h4{margin:0 0 4px;font-size:13.5px}
+  .feat p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.45}
+  .h2{font-family:"Fraunces";font-weight:500;font-size:24px;margin:36px 0 6px}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
+  .sub b{color:var(--ink)}
+  .flow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:10px}
+  @media(max-width:880px){.flow{grid-template-columns:1fr 1fr}}
+  .fcard{display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px;transition:.18s}
+  .fcard:hover{transform:translateY(-3px);border-color:var(--accent)}
+  .fcard .fk{width:34px;height:34px;border-radius:9px;background:#f1e3cd;color:var(--accent);display:grid;place-items:center;font-size:16px;flex:none}
+  .fcard .fn{font-weight:600;font-size:14.5px}
+  .fcard .fd{color:var(--muted);font-size:12.5px;line-height:1.45;margin-top:3px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="ey">Pinpoint · design exploration</div>
+    <h1>Three directions for the study experience</h1>
+    <p class="lede">All three now use a <b>YouTube-style watch layout</b> — big player on the left, a <b>floating, collapsible notes panel</b> on the right (chat-style, with a pinned capture box), title + actions + AI summary below, and an "up next in this course" list. Same <b>feature set</b>, three different <b>aesthetics</b>. Click around: the Notes/Transcript tabs, the timeline pins on the scrubber, collapse the panel with ✕, and ⌘K in C.</p>
+  </header>
+
+  <div class="grid">
+    <!-- A -->
+    <a class="card" href="direction-a-tatami.html">
+      <div class="swatch sw-a">
+        <span class="tag" style="color:#c2410c">Direction A</span>
+        <div class="dotrow"><i style="background:#e2571f"></i><i style="background:#bf8a2c"></i><i style="background:#3a9384"></i><i style="background:#fffdf8"></i></div>
+      </div>
+      <div class="body">
+        <div class="name">Tatami <span>· light, warm, cinematic</span></div>
+        <div class="desc">Big player on warm cream; the floating notes panel reads like a refined annotation track. Note-pins ride the scrubber; capture box pinned at the bottom.</div>
+        <div class="ux"><b>UX bet:</b> distraction-free deep watching — capture without leaving the frame.</div>
+        <div class="meta"><span>Fraunces × Hanken</span><span>focus mode</span><span>cream/ember</span></div>
+        <span class="open">Open mockup →</span>
+      </div>
+    </a>
+    <!-- B -->
+    <a class="card" href="direction-b-fieldnotes.html">
+      <div class="swatch sw-b">
+        <span class="tag" style="color:#c5421f">Direction B</span>
+        <div class="dotrow"><i style="background:#c5421f"></i><i style="background:#5d7a5a"></i><i style="background:#b58a2e"></i><i style="background:#fffdf8"></i></div>
+      </div>
+      <div class="body">
+        <div class="name">Field Notes <span>· light, editorial</span></div>
+        <div class="desc">The same big-video layout in a paper/serif voice. The floating notes panel reads like marginalia — Newsreader type, timestamp chips, a calm capture box.</div>
+        <div class="ux"><b>UX bet:</b> watch big, then read &amp; write — the calmest of the three.</div>
+        <div class="meta"><span>Newsreader × Spline</span><span>paper/serif</span><span>marginalia</span></div>
+        <span class="open">Open mockup →</span>
+      </div>
+    </a>
+    <!-- C -->
+    <a class="card" href="direction-c-commanddeck.html">
+      <div class="swatch sw-c">
+        <span class="tag" style="color:#3a59ff">Direction C</span>
+        <div class="dotrow"><i style="background:#3a59ff"></i><i style="background:#0e9aa7"></i><i style="background:#c77d16"></i><i style="background:#ffffff"></i></div>
+      </div>
+      <div class="body">
+        <div class="name">Command Deck <span>· light, dense, keyboard</span></div>
+        <div class="desc">The big-video layout, tightened. White, monospace accents, a ⌘K palette, and the floating notes panel carries keyboard hints (N · R · cloze · ↵).</div>
+        <div class="ux"><b>UX bet:</b> speed &amp; volume — for the daily power user managing hundreds of notes.</div>
+        <div class="meta"><span>Archivo × JetBrains Mono</span><span>command palette</span><span>white/indigo</span></div>
+        <span class="open">Open mockup →</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="h2">Direction A — the full flow</div>
+  <div class="sub">You picked <b>Tatami</b> to build out. Here it is as a connected app — the screens link to each other, so you can click through Home → a video → its course → search.</div>
+  <div class="flow">
+    <a class="fcard" href="direction-a-home.html"><span class="fk">⌂</span><div><div class="fn">Home / Dashboard</div><div class="fd">Greeting + streak, jump-back-in, due-today review, recent notes, course progress.</div></div></a>
+    <a class="fcard" href="direction-a-tatami.html"><span class="fk">▶</span><div><div class="fn">Watch (YouTube layout)</div><div class="fd">Big player + floating notes panel, AI summary, up-next.</div></div></a>
+    <a class="fcard" href="direction-a-course.html"><span class="fk">❏</span><div><div class="fn">Course / Curriculum</div><div class="fd">Cover, progress, lessons grouped by chapter, curriculum siblings.</div></div></a>
+    <a class="fcard" href="direction-a-library.html"><span class="fk">⌕</span><div><div class="fn">Library + Search</div><div class="fd">Result tabs, filters, transcript-moment + note hits, video grid.</div></div></a>
+  </div>
+
+  <div class="h2">What every direction has to nail</div>
+  <div class="sub">The research kept pointing at the same five jobs — each mockup solves all five, just with different emphasis.</div>
+  <div class="shared">
+    <div class="feat"><h4>① One-key capture</h4><p>Note at the current second without pausing flow — point, range, or cloze.</p></div>
+    <div class="feat"><h4>② Click-to-seek</h4><p>Every timestamp (notes, transcript, chapters) jumps the player to that moment.</p></div>
+    <div class="feat"><h4>③ Review that starts in seconds</h4><p>The thing Anki gets wrong — due cards, themed queues, instant flip.</p></div>
+    <div class="feat"><h4>④ Momentum</h4><p>Streak, continue-watching, course %, "8 due today" — the return hooks.</p></div>
+  </div>
+
+  <p class="note">Mockups are static HTML for direction-setting — fonts, color, layout, and interaction feel. They map onto the real Inertia/React pages (<b>videos/Show</b>, <b>review/Index</b>, <b>Dashboard</b>, <b>positions/Index</b>) once you pick a direction (or a hybrid — e.g. <b>B</b>'s reading layout for the notebook, <b>C</b>'s palette + review-inbox for power use, <b>A</b>'s player for focus mode). Sources: Snipd / Recall / LunaNotes (timestamped-notes UX), Mochi / Flashrecall / Space (modern spaced-rep UI), NN/g &amp; LearnDash (instructional-video + focus-mode guidelines).</p>
+</div>
+</body>
+</html>

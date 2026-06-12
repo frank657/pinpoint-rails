@@ -4,6 +4,7 @@ export interface Playback {
   source: 'youtube' | 'upload'
   youtubeId?: string
   hlsUrl?: string | null
+  mediaUrl?: string | null // direct file URL (mezzanine) — playable before transcoding
   status?: string
 }
 
@@ -65,10 +66,18 @@ const VideoPlayer = forwardRef<PlayerHandle, { playback: Playback }>(({ playback
     }
   }, [playback.source, playback.youtubeId])
 
-  // HLS for uploaded video.
+  // Uploaded video: HLS (ready) or direct file (uploaded/mezzanine).
   useEffect(() => {
     const video = videoRef.current
-    if (playback.source !== 'upload' || !playback.hlsUrl || !video) return
+    if (playback.source !== 'upload' || !video) return
+
+    // Mezzanine (uploaded, not yet transcoded): play the original file directly.
+    if (playback.mediaUrl && !playback.hlsUrl) {
+      video.src = playback.mediaUrl
+      return
+    }
+
+    if (!playback.hlsUrl) return
 
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = playback.hlsUrl
@@ -87,7 +96,7 @@ const VideoPlayer = forwardRef<PlayerHandle, { playback: Playback }>(({ playback
       destroyed = true
       hls?.destroy()
     }
-  }, [playback.source, playback.hlsUrl])
+  }, [playback.source, playback.hlsUrl, playback.mediaUrl])
 
   if (playback.source === 'youtube') {
     return (
@@ -97,7 +106,7 @@ const VideoPlayer = forwardRef<PlayerHandle, { playback: Playback }>(({ playback
     )
   }
 
-  if (!playback.hlsUrl) {
+  if (!playback.hlsUrl && !playback.mediaUrl) {
     return (
       <div className="flex aspect-video w-full items-center justify-center rounded-xl border border-dashed border-neutral-300 text-neutral-400">
         {playback.status === 'uploading' ? 'Uploading…' : 'Processing video…'}

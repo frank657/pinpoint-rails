@@ -6,15 +6,15 @@ RSpec.describe ForkService do
   let(:forker) { create(:user) }
   let(:ws_b) { forker.workspaces.first }
 
-  describe "forking a course (ADR 0005)" do
+  describe "forking a notebook (ADR 0005)" do
     let!(:source) do
       ActsAsTenant.with_tenant(ws_a) do
-        course = create(:course, workspace: ws_a, title: "Closed Guard")
-        chapter = course.chapters.create!(title: "Basics")
+        notebook = create(:notebook, workspace: ws_a, title: "Closed Guard")
+        chapter = notebook.chapters.create!(title: "Basics")
         video = create(:video, workspace: ws_a, youtube_id: "abc12345678", title: "Intro")
-        course.items.create!(video: video, chapter: chapter)
+        notebook.items.create!(video: video, chapter: chapter)
         create(:note, workspace: ws_a, video: video, title: "Grip first")
-        course
+        notebook
       end
     end
 
@@ -41,7 +41,7 @@ RSpec.describe ForkService do
 
     it "records a Fork attribution" do
       forked = ForkService.call(source, target_workspace: ws_b, forked_by: forker)
-      fork = Fork.find_by(target_type: "Course", target_id: forked.id.to_s)
+      fork = Fork.find_by(target_type: "Notebook", target_id: forked.id.to_s)
       expect(fork.source_id).to eq(source.id.to_s)
       expect(fork.target_workspace).to eq(ws_b)
     end

@@ -1,5 +1,5 @@
 # A labeled time-range within a single video (the in-video "chapter"/clip concept, distinct
-# from a Course Chapter — docs/decisions/0003). Workspace-scoped content. Seconds are numeric.
+# from a Notebook Chapter — ADR 0010). Workspace-scoped content. Seconds are numeric.
 class Segment < ApplicationRecord
   acts_as_tenant :workspace
 

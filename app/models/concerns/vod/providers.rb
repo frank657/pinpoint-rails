@@ -23,6 +23,28 @@ module Vod::Providers
     provider_uploaded?
   end
 
+  # Reconcile DB status against the real Aliyun state. Called from the status-poll endpoint
+  # so that videos advance past "uploading" even when the webhook can't reach the server (dev).
+  def sync_from_provider!
+    return if ready?
+    return unless aliyun?
+
+    av = aliyun_video
+
+    # Check if transcoding is done — GetPlayInfo returns play info once the asset is ready.
+    play_info = av.provider_play_info
+    if play_info.present?
+      duration = play_info.first&.dig(:duration)&.to_f
+      update!(status: :ready, duration: duration.presence || self.duration)
+      return
+    end
+
+    # At least check if the mezzanine (raw upload) has arrived.
+    update!(status: :uploaded) if av.uploaded? && !uploaded?
+  rescue StandardError => e
+    Rails.logger.warn("[Vod##{id}] sync_from_provider! failed: #{e.class} #{e.message}")
+  end
+
   private
 
   def destroy_vod_object

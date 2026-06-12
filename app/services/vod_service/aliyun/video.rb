@@ -34,6 +34,13 @@ class VodService::Aliyun::Video
          &.map { |v| v.slice(*%i[status size definition duration format play_url height width]) }
   end
 
+  # Calls GetPlayInfo regardless of the DB record status — used for on-demand reconciliation.
+  def provider_play_info
+    resp = ::AliVod::Request.post(:get_video, { "VideoId": record.key })
+    resp&.dig(:play_info_list, :play_info)&.sort_by { |v| v[:size] }
+        &.map { |v| v.slice(*%i[status size definition duration format play_url height width]) }
+  end
+
   def transcoded_url(format = "m3u8")
     u = urls&.find do |url|
       if format == "m3u8"

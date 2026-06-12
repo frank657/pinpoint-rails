@@ -20,7 +20,7 @@ done until the exit criteria pass.
 | 6 | [Admin panel](phases/phase-6-admin-panel.md) | ✅ | 1 | 0006 |
 | 7 | [Progress tracking & resume](phases/phase-7-progress.md) | ✅ | 4 | 0004 |
 | 8 | [Spaced repetition (FSRS)](phases/phase-8-spaced-repetition.md) | ✅ | 3, 7 | 0004 |
-| 9 | [Training / drilling log](phases/phase-9-training-log.md) | ✅ | 3 | 0004 |
+| 9 | ~~Training / drilling log~~ (dropped) | 🗑️ | 3 | 0004 |
 | 10 | [Technique taxonomy graph](phases/phase-10-taxonomy-graph.md) | ✅ | 3 | 0004 |
 | 11 | [Transcripts & AI search/summarization](phases/phase-11-transcripts-ai.md) | ✅ | 2, 3 | 0009 |
 

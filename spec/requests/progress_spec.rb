@@ -24,16 +24,16 @@ RSpec.describe "Progress", type: :request do
     expect(inertia_props(response)["resumeSeconds"]).to eq(30)
   end
 
-  it "rolls up course completion from per-video progress" do
-    course = create(:course, workspace: workspace)
+  it "rolls up notebook completion from per-video progress" do
+    notebook = create(:notebook, workspace: workspace)
     v1 = create(:video, workspace: workspace)
     v2 = create(:video, workspace: workspace)
-    course.items.create!(video: v1)
-    course.items.create!(video: v2)
+    notebook.items.create!(video: v1)
+    notebook.items.create!(video: v2)
     Progress.create!(user: user, workspace: workspace, trackable: v1, completed_at: Time.current)
 
-    get app_course_path(course), headers: inertia_headers
-    expect(inertia_props(response)["course"]["progress"]).to eq("completed" => 1, "total" => 2)
+    get app_notebook_path(notebook), headers: inertia_headers
+    expect(inertia_props(response)["notebook"]["progress"]).to eq("completed" => 1, "total" => 2)
   end
 
   it "keeps progress private per user (Axis 3, not copied on fork)" do

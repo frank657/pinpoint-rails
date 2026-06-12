@@ -39,14 +39,14 @@ module App
       apply_theme(scope).order(Arel.sql("due_at ASC NULLS FIRST"))
     end
 
-    # Narrow the queue to a single category / tag / course when a theme is given.
+    # Narrow the queue to a single category / tag / notebook when a theme is given.
     def apply_theme(scope)
       kind, value = params[:theme].to_s.split(":", 2)
       case kind
       when "category" then scope.where(notes: { category_id: value })
       when "tag"      then scope.joins(note: :tags).where(tags: { name: value })
-      when "course"
-        video_ids = Course.find(value).video_ids
+      when "notebook"
+        video_ids = Notebook.find(value).video_ids
         scope.where(notes: { video_id: video_ids })
       else scope
       end
@@ -59,11 +59,11 @@ module App
         .joins(:note).where(notes: { workspace_id: current_workspace.id })
       categories = Category.where(id: base.distinct.pluck(Arel.sql("notes.category_id")).compact)
         .order(:name).map { |c| { value: "category:#{c.id}", label: c.name } }
-      courses = Course.where(id: base.joins(note: { video: :course_items }).distinct.pluck(Arel.sql("course_items.course_id")))
-        .order(:title).map { |c| { value: "course:#{c.id}", label: c.title } }
+      notebooks = Notebook.where(id: base.joins(note: { video: :notebook_items }).distinct.pluck(Arel.sql("notebook_items.notebook_id")))
+        .order(:title).map { |n| { value: "notebook:#{n.id}", label: n.title } }
       tags = Tag.where(id: base.joins(note: :tags).distinct.pluck(Arel.sql("tags.id")))
         .order(:name).map { |t| { value: "tag:#{t.name}", label: "##{t.name}" } }
-      categories + courses + tags
+      categories + notebooks + tags
     end
   end
 end

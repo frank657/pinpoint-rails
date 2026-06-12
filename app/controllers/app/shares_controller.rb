@@ -1,6 +1,6 @@
 module App
   class SharesController < BaseController
-    SHAREABLE_TYPES = %w[Video Note Course Curriculum Folder].freeze
+    SHAREABLE_TYPES = %w[Video Note Notebook].freeze
 
     # Read-only view of a shared object via its token (the recipient may be in another
     # workspace), with a "save to my workspace" (fork) action. The lookup uses without_tenant
@@ -48,10 +48,8 @@ module App
 
     def content_summary(obj)
       case obj
-      when Course then "Course · #{ActsAsTenant.without_tenant { obj.items.size }} videos"
-      when Curriculum then "Curriculum · #{ActsAsTenant.without_tenant { obj.items.size }} courses"
+      when Notebook then "Notebook · #{ActsAsTenant.without_tenant { obj.items.size }} videos"
       when Video then "Video"
-      when Folder then "Folder of notes"
       when Note then "Note"
       end
     end

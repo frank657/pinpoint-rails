@@ -5,7 +5,7 @@
 # - Media is shared BY REFERENCE: forked Videos point at the same Vod / youtube_id (no
 #   re-upload). Reference counting (Video#cleanup_orphaned_vod) protects the shared asset.
 # - Axis 2 taxonomy (Category/Tag) is re-pointed: matched-or-created by name in the target.
-# - Axis 3 per-user state (progress, review cards, training log) is NEVER copied.
+# - Axis 3 per-user state (progress, review cards) is NEVER copied.
 #
 # Tenancy: writes run with the TARGET workspace as the current tenant (so new rows land there
 # and Tag/Category find-or-create in the target); reads of the SOURCE subtree are wrapped in
@@ -38,11 +38,9 @@ class ForkService
 
   def copy(obj)
     case obj
-    when Video      then copy_video(obj)
-    when Note       then copy_note(obj)
-    when Course     then copy_course(obj)
-    when Curriculum then copy_curriculum(obj)
-    when Folder     then copy_folder(obj)
+    when Video    then copy_video(obj)
+    when Note     then copy_note(obj)
+    when Notebook then copy_notebook(obj)
     else raise ArgumentError, "Cannot fork #{obj.class}"
     end
   end
@@ -83,38 +81,22 @@ class ForkService
                     end_seconds: segment.end_seconds, position: segment.position)
   end
 
-  def copy_course(course)
-    chapters = read { course.chapters.to_a }
-    items = read { course.items.includes(:video).to_a }
+  def copy_notebook(notebook)
+    chapters = read { notebook.chapters.to_a }
+    items = read { notebook.items.includes(:video).to_a }
 
-    new_course = Course.create!(title: course.title, description: course.description)
+    new_notebook = Notebook.create!(title: notebook.title, description: notebook.description)
     chapter_map = chapters.each_with_object({}) do |ch, map|
-      map[ch.id] = new_course.chapters.create!(title: ch.title, position: ch.position)
+      map[ch.id] = new_notebook.chapters.create!(title: ch.title, position: ch.position)
     end
     items.each do |item|
-      new_course.items.create!(
+      new_notebook.items.create!(
         video: copy_video(read { item.video }),
-        chapter: item.course_chapter_id && chapter_map[item.course_chapter_id],
+        chapter: item.notebook_chapter_id && chapter_map[item.notebook_chapter_id],
         position: item.position
       )
     end
-    new_course
-  end
-
-  def copy_curriculum(curriculum)
-    items = read { curriculum.items.includes(:course).to_a }
-    new_curriculum = Curriculum.create!(title: curriculum.title, description: curriculum.description)
-    items.each { |item| new_curriculum.items.create!(course: copy_course(read { item.course }), position: item.position) }
-    new_curriculum
-  end
-
-  def copy_folder(folder)
-    notes = read { folder.notes.to_a }
-    children = read { folder.children.to_a }
-    new_folder = Folder.create!(name: folder.name, position: folder.position)
-    notes.each { |n| copy_note(n).update!(folder: new_folder) }
-    children.each { |child| copy_folder(child).update!(parent: new_folder) }
-    new_folder
+    new_notebook
   end
 
   def mapped_category(category)

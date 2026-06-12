@@ -6,14 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Pinpoint is a **video note-taking & learning platform**. You upload videos (to Aliyun VOD)
 or paste a YouTube link, then take **timestamped notes** (point or time-range) on them,
-organize videos into **Courses** and **Curriculums**, organize notes with **Categories**,
-**Tags**, and **Folders**, and **share / fork** any of it to other users. A **learning
-layer** (progress, spaced-repetition review, a training log, a technique taxonomy, and
-transcript/AI search) sits on top.
+organize videos into **Notebooks** (each a set of videos in **Chapters**, plus the notes you
+take on them), label notes with **Categories** and **Tags**, and **share / fork** any of it
+to other users. A **learning layer** (progress, spaced-repetition review, a technique
+taxonomy, and transcript/AI search) sits on top.
+
+> **Content model = Notebook** (ADR 0010, supersedes 0003): `Notebook → Notebook::Chapter →
+> Notebook::Item → Video`. The old **Course / Curriculum / Folder** concepts were removed —
+> don't reintroduce them.
 
 The author's primary use case is **BJJ (Brazilian Jiu-Jitsu)** instructional study, but the
 product is general-purpose for **any** kind of video learning. Keep the core domain
-generic; keep BJJ-specific affordances (positions/techniques, drilling log) in clearly
+generic; keep BJJ-specific affordances (positions/techniques) in clearly
 separable modules.
 
 ## Project Documents
@@ -57,10 +61,10 @@ Routes are split by subdomain constraint in `config/routes.rb` / `config/routes/
 ## The three-axis model (see ADR 0004 — internalize this)
 
 Keep these three concerns in **separate tables**; do not entangle them:
-1. **Content** (shared & forkable): Video, Vod, Segment, Chapter, Course, Curriculum,
-   Note, Folder.
+1. **Content** (shared & forkable): Video, Vod, Segment, Notebook, Notebook::Chapter,
+   Notebook::Item, Note.
 2. **Taxonomy** (labels/curated): Category, Tag, Position, Technique.
-3. **Per-user state** (never shared, always private): Progress, ReviewCard, TrainingSession.
+3. **Per-user state** (never shared, always private): Progress, ReviewCard.
 
 When forking, deep-copy **content**; re-point **taxonomy** into the forker's workspace;
 **never** copy per-user state. Timestamps are stored as **numeric seconds** (floats), never

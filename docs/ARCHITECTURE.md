@@ -9,7 +9,7 @@ A video note-taking & learning platform. Upload videos (Aliyun VOD) or paste a Y
 link; take **timestamped notes** (point or range) and **rich-text notes**; organize videos
 into **Courses** and **Curriculums**; organize notes with **Categories**, **Tags**, and
 **Folders**; **share** and **fork** anything; and study with a **learning layer**
-(progress, spaced-repetition review, training log, technique taxonomy, transcript/AI search).
+(progress, spaced-repetition review, technique taxonomy, transcript/AI search).
 
 Primary use case: BJJ instructional study. Designed general-purpose for any video learning.
 
@@ -59,7 +59,6 @@ Everything below is sorted into exactly one axis. **Content** is shared/forkable
    └─────────────────────────────────────────────────────────────────────────────────┘
    ┌───────────────────── AXIS 3: PER-USER STATE (private) ──────────────────────────┐
    │  Progress(user,workspace,item)   ReviewCard(user, note, FSRS state)             │
-   │  TrainingSession(user,workspace) ──<>── Technique / Note                         │
    └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -128,9 +127,6 @@ Everything below is sorted into exactly one axis. **Content** is shared/forkable
 - **ReviewCard** — FSRS card for a Note (Phase 8). `user_id`, `note_id`, `due_at`,
   `stability`, `difficulty`, `state`, `reps`, `lapses`, `last_reviewed_at`,
   `card_template` (one Note may have ≥1 cards, e.g. cloze). **No FSRS field ever on Note.**
-- **TrainingSession** — BJJ drilling/sparring journal (Phase 9). `user_id`, `workspace_id`,
-  `date`, `gi:boolean`, `kind:enum { drill, roll, positional, class, competition }`,
-  `duration_minutes`, `notes`. Joins to Techniques/Notes worked.
 
 ## 5. Video ingestion (ported VOD pipeline + YouTube)
 

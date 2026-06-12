@@ -3,36 +3,148 @@ import AppShell, { type AppSharedProps } from '../components/AppShell'
 import { formatTime } from '../lib/time'
 
 interface ContinueItem { id: number; title: string; resumeSeconds: number }
+interface NoteRow {
+  id: string
+  noteType: 'timestamp' | 'rich_text'
+  videoId: number | null
+  title: string | null
+  startSeconds: number | null
+  category: string | null
+  tags: string[]
+}
 
-export default function Dashboard({ continueWatching }: { continueWatching: ContinueItem[] }) {
-  const { currentWorkspace } = usePage<AppSharedProps>().props
+export default function Dashboard({
+  continueWatching,
+  recentNotes,
+  noteCount,
+  videoCount,
+}: {
+  continueWatching: ContinueItem[]
+  recentNotes: NoteRow[]
+  noteCount: number
+  videoCount: number
+}) {
+  const { currentWorkspace, currentUser, dueCount } = usePage<AppSharedProps & { dueCount: number }>().props
+  const name = currentUser?.email?.split('@')[0] ?? 'there'
 
   return (
     <AppShell>
-      <Head title="Pinpoint — Dashboard" />
-      <h1 className="text-3xl font-semibold tracking-tight">{currentWorkspace?.name ?? 'Your workspace'}</h1>
-      <p className="mt-3 text-neutral-500">Pin every moment worth learning.</p>
+      <Head title="Pinpoint — Home" />
 
-      {continueWatching.length > 0 && (
-        <section className="mt-10">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-neutral-400">Continue watching</h2>
-          <ul className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {continueWatching.map((v) => (
-              <li key={v.id} className="rounded-xl border border-neutral-200 bg-white p-4">
-                <Link href={`/videos/${v.id}`} className="font-medium hover:text-amber-600">{v.title}</Link>
-                <p className="mt-1 text-xs text-neutral-400">Resume at {formatTime(v.resumeSeconds)}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
+      {/* greeting */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="font-display text-[34px] font-medium leading-none tracking-tight">Welcome back, {name}.</h1>
+          <p className="mt-2.5 text-[15px] text-neutral-500">{currentWorkspace?.name ?? 'Your workspace'} · pick up where you left off, or clear today's review.</p>
+        </div>
+        <div className="flex gap-3 text-sm">
+          <Stat n={videoCount} label="videos" />
+          <Stat n={noteCount} label="notes" />
+          <Stat n={dueCount ?? 0} label="due" accent />
+        </div>
+      </div>
+
+      {/* continue watching */}
+      <Section title="Jump back in" href="/videos" cta="All videos →" />
+      {continueWatching.length > 0 ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {continueWatching.map((v) => (
+            <Link key={v.id} href={`/videos/${v.id}`} className="group overflow-hidden rounded-2xl border border-neutral-200 bg-surface transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-28px_rgba(120,80,40,0.55)]">
+              <div className="relative aspect-video bg-gradient-to-br from-[#7a5f44] to-[#33271c]">
+                <span className="absolute bottom-2 right-2 rounded bg-black/60 px-1.5 font-display text-[11px] text-white">{formatTime(v.resumeSeconds)}</span>
+              </div>
+              <div className="p-3.5">
+                <div className="font-medium leading-snug group-hover:text-amber-600">{v.title}</div>
+                <div className="mt-1 text-[12.5px] text-neutral-400">Resume at {formatTime(v.resumeSeconds)}</div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <EmptyHint text="Nothing in progress yet — open a video and start taking timestamped notes." href="/videos" cta="Browse the library →" />
       )}
 
-      <Link
-        href="/videos"
-        className="mt-10 inline-block rounded-lg bg-amber-400 px-5 py-2.5 font-medium text-neutral-950 hover:bg-amber-300"
-      >
-        Go to videos →
-      </Link>
+      {/* today: review + recent notes */}
+      <Section title="Today" />
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <div className="rounded-2xl border border-neutral-200 bg-[radial-gradient(120%_140%_at_0%_0%,rgba(226,87,31,0.10),transparent_55%)] bg-surface p-6">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ember">Daily review · FSRS</p>
+          <p className="mt-2 font-display text-5xl font-semibold leading-none">{dueCount ?? 0}</p>
+          <p className="mt-1.5 text-[13.5px] text-neutral-500">{(dueCount ?? 0) === 0 ? "you're all caught up" : 'cards due — only what you should see today'}</p>
+          <Link href="/review" className="mt-5 inline-block w-full rounded-xl bg-ember px-4 py-3 text-center text-sm font-semibold text-white shadow-[0_10px_22px_-10px_rgba(226,87,31,0.6)] hover:bg-amber-500">
+            {(dueCount ?? 0) === 0 ? 'Review anyway →' : 'Start review →'}
+          </Link>
+        </div>
+
+        <div className="rounded-2xl border border-neutral-200 bg-surface p-6">
+          <div className="mb-1 flex items-center justify-between">
+            <p className="font-display text-lg italic">Recent notes</p>
+            <Link href="/notes" className="text-[13px] font-medium text-amber-600">All notes →</Link>
+          </div>
+          {recentNotes.length === 0 ? (
+            <p className="py-6 text-sm text-neutral-400">No notes yet.</p>
+          ) : (
+            <ul>
+              {recentNotes.map((n) => (
+                <li key={n.id} className="border-b border-neutral-100 py-2.5 last:border-0">
+                  <Link href={n.videoId ? `/videos/${n.videoId}` : '/notes'} className="flex items-center gap-2.5">
+                    {n.noteType === 'timestamp' && n.startSeconds != null ? (
+                      <span className="flex-none rounded bg-teal px-1.5 py-0.5 font-display text-[11px] tabular-nums text-white">{formatTime(n.startSeconds)}</span>
+                    ) : (
+                      <span className="flex-none rounded bg-gold/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-gold">note</span>
+                    )}
+                    <span className="truncate text-sm text-neutral-700">{n.title ?? 'Untitled note'}</span>
+                    {n.category && <span className="ml-auto flex-none text-xs text-neutral-400">{n.category}</span>}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      {/* quick links */}
+      <Section title="Go to" />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[
+          { label: 'Library', href: '/videos', icon: '▦' },
+          { label: 'Notebooks', href: '/notebooks', icon: '❏' },
+          { label: 'Notes', href: '/notes', icon: '▤' },
+          { label: 'Search', href: '/search', icon: '⌕' },
+        ].map((q) => (
+          <Link key={q.label} href={q.href} className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-surface p-4 transition hover:-translate-y-0.5 hover:border-ember">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-400/12 text-ember">{q.icon}</span>
+            <span className="font-medium">{q.label}</span>
+          </Link>
+        ))}
+      </div>
     </AppShell>
+  )
+}
+
+function Stat({ n, label, accent }: { n: number; label: string; accent?: boolean }) {
+  return (
+    <div className="rounded-xl border border-neutral-200 bg-surface px-4 py-2 text-center">
+      <div className={`font-display text-xl font-semibold leading-none ${accent ? 'text-ember' : ''}`}>{n}</div>
+      <div className="mt-1 text-[11.5px] text-neutral-400">{label}</div>
+    </div>
+  )
+}
+
+function Section({ title, href, cta }: { title: string; href?: string; cta?: string }) {
+  return (
+    <div className="mb-3.5 mt-9 flex items-baseline justify-between">
+      <h2 className="font-display text-[22px] font-medium italic">{title}</h2>
+      {href && cta && <Link href={href} className="text-[13px] font-semibold text-amber-600">{cta}</Link>}
+    </div>
+  )
+}
+
+function EmptyHint({ text, href, cta }: { text: string; href: string; cta: string }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-neutral-300 bg-surface px-6 py-12 text-center">
+      <p className="text-sm text-neutral-500">{text}</p>
+      <Link href={href} className="mt-4 inline-block rounded-lg bg-ember px-4 py-2 text-sm font-medium text-white hover:bg-amber-500">{cta}</Link>
+    </div>
   )
 }

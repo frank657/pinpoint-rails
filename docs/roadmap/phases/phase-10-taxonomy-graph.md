@@ -29,7 +29,7 @@ into a navigable system ("show every note about closed guard across all my video
 - A **position page** aggregates every note/segment/video referencing it across the
   workspace (Logseq-style transclusion) — "all closed-guard material".
 - A graph/map view of positions linked by techniques; click an edge → its notes/videos.
-- Filter review queues (Phase 8) and training logs (Phase 9) by position/technique.
+- Filter review queues (Phase 8) by position/technique.
 
 ## Key tasks
 1. `Position`, `Technique` models + joins to notes; BJJ seed data; factories/specs.

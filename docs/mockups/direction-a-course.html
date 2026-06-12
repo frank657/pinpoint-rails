@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pinpoint · A — Course</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f4eee4; --panel:#fffdf8; --panel-2:#faf3e8; --raise:#f0e6d6;
+    --ink:#2c2722; --muted:#6e645a; --faint:#9b8f7f;
+    --ember:#e2571f; --ember-2:#f0703a; --gold:#bf8a2c; --teal:#3a9384;
+    --line:rgba(44,32,20,.10); --line-2:rgba(44,32,20,.17);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:"Hanken Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+  a{color:inherit;text-decoration:none}
+
+  header{position:sticky;top:0;z-index:50;height:58px;display:flex;align-items:center;gap:18px;padding:0 22px;background:rgba(244,238,228,.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .mark{display:flex;align-items:center;gap:10px;font-weight:600}
+  .dot{width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 30% 30%,var(--ember-2),var(--ember));box-shadow:0 0 14px rgba(226,87,31,.4)}
+  .mark b{font-family:"Fraunces";font-size:20px}
+  .search{flex:1;max-width:520px;margin:0 auto;display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line-2);border-radius:999px;padding:9px 16px;color:var(--faint);font-size:14px}
+  .search::after{content:"⌕";margin-left:auto;color:var(--muted);font-size:16px}
+  .barr{display:flex;align-items:center;gap:12px;margin-left:auto}
+  .ghost{font-size:13.5px;color:var(--muted);border:1px solid var(--line-2);border-radius:999px;padding:7px 13px}
+  .ava{width:33px;height:33px;border-radius:50%;background:conic-gradient(from 210deg,var(--ember),var(--gold),var(--teal));display:grid;place-items:center;font-size:12px;color:#fff;font-weight:700}
+
+  .shell{display:grid;grid-template-columns:226px 1fr;align-items:start}
+  .side{position:sticky;top:58px;height:calc(100vh - 58px);border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:4px;background:var(--bg)}
+  .ws{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid var(--line-2);border-radius:11px;font-size:13.5px;margin-bottom:12px;cursor:pointer;background:var(--panel)}
+  .ws .ic{width:22px;height:22px;border-radius:6px;background:conic-gradient(from 120deg,var(--ember),var(--gold),var(--teal));flex:none}
+  .ws .cv{margin-left:auto;color:var(--faint)}
+  .navl{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:14px 10px 5px;font-weight:600}
+  .nav a{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:10px;color:var(--muted);font-size:14px;font-weight:500;transition:.14s}
+  .nav a .gi{width:17px;text-align:center}
+  .nav a:hover{background:var(--panel-2);color:var(--ink)}
+  .nav a.on{background:var(--raise);color:var(--ink)}
+  .nav a .cnt{margin-left:auto;font-family:"Fraunces";font-size:12px;color:#9a6a16;background:rgba(191,138,44,.14);padding:0 8px;border-radius:999px}
+
+  main{padding:26px 36px 70px;max-width:1180px}
+  .crumbs{font-size:12.5px;color:var(--faint);letter-spacing:.04em}
+  .crumbs a{color:var(--gold);font-weight:600}
+
+  /* course header */
+  .chead{display:grid;grid-template-columns:300px 1fr;gap:24px;margin-top:14px;align-items:center}
+  @media(max-width:820px){.chead{grid-template-columns:1fr}}
+  .cover{aspect-ratio:16/10;border-radius:16px;background:linear-gradient(135deg,#8a6c4c,#33271c);position:relative;overflow:hidden;box-shadow:0 24px 50px -34px rgba(120,80,40,.6)}
+  .cover .play{position:absolute;inset:0;display:grid;place-items:center}
+  .cover .play span{width:60px;height:60px;border-radius:50%;background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.7);display:grid;place-items:center}
+  .cover .play span::after{content:"";border-left:16px solid #fff;border-top:10px solid transparent;border-bottom:10px solid transparent;margin-left:4px}
+  .ctitle{font-family:"Fraunces";font-weight:500;font-size:34px;line-height:1.08;letter-spacing:-.01em;margin:6px 0 8px}
+  .cby{display:flex;align-items:center;gap:11px;color:var(--muted);font-size:14px}
+  .cby .pic{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#7a5f44,#33271c)}
+  .cmeta{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+  .pill{font-size:12.5px;color:var(--muted);border:1px solid var(--line-2);border-radius:999px;padding:4px 11px}
+  .pill.fork{color:#9a6a16;border-color:rgba(191,138,44,.4)}
+  .pbar{height:9px;border-radius:9px;background:rgba(44,32,20,.1);overflow:hidden;margin-top:6px}
+  .pbar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--ember))}
+  .cactions{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap}
+  .act{display:flex;align-items:center;gap:7px;background:var(--raise);border:1px solid var(--line);border-radius:11px;padding:9px 15px;font-size:13.5px;font-weight:500;cursor:pointer}
+  .act.primary{background:linear-gradient(180deg,var(--ember-2),var(--ember));color:#fff;border:none;box-shadow:0 10px 22px -10px rgba(226,87,31,.55)}
+
+  /* body: lessons + rail */
+  .body{display:grid;grid-template-columns:1fr 300px;gap:28px;margin-top:30px;align-items:start}
+  @media(max-width:980px){.body{grid-template-columns:1fr}}
+  .chapter{margin-bottom:8px}
+  .chapter .ch-h{display:flex;align-items:center;gap:10px;margin:22px 0 10px}
+  .chapter .ch-h .n{font-family:"Fraunces";font-style:italic;font-size:19px}
+  .chapter .ch-h .meta{font-size:12.5px;color:var(--faint)}
+  .chapter .ch-h .line{flex:1;height:1px;background:var(--line)}
+
+  .lesson{display:flex;align-items:center;gap:14px;padding:11px;border:1px solid var(--line);border-radius:13px;margin-bottom:8px;background:var(--panel);cursor:pointer;transition:.14s}
+  .lesson:hover{border-color:var(--line-2);transform:translateY(-1px);box-shadow:0 12px 26px -20px rgba(120,80,40,.5)}
+  .lesson .grip{color:var(--faint);cursor:grab;font-size:15px}
+  .lesson .num{font-family:"Fraunces";font-variant-numeric:tabular-nums;color:var(--faint);width:22px;text-align:center}
+  .lesson .cov{width:118px;height:68px;border-radius:9px;background:linear-gradient(135deg,#7a5f44,#33271c);flex:none;position:relative;overflow:hidden}
+  .lesson .cov .d{position:absolute;right:5px;bottom:5px;font-family:"Fraunces";font-size:10.5px;color:#fff;background:rgba(0,0,0,.62);padding:1px 5px;border-radius:4px}
+  .lesson .cov .pb{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.3)}
+  .lesson .cov .pb i{display:block;height:100%;background:var(--ember)}
+  .lesson .info{flex:1;min-width:0}
+  .lesson .tt{font-weight:600;font-size:15px;line-height:1.2}
+  .lesson .ss{font-size:12.5px;color:var(--faint);margin-top:3px;display:flex;gap:10px}
+  .lesson .ss .nb{color:#9a6a16}
+  .lesson .state{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px}
+  .state.done{color:var(--teal);background:rgba(58,147,132,.12)}
+  .state.now{color:#fff;background:var(--ember)}
+  .state.todo{color:var(--muted);border:1px solid var(--line-2)}
+
+  .rail .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:0 14px 34px -30px rgba(120,80,40,.5)}
+  .rail h4{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 0 11px;font-weight:600}
+  .kv{display:flex;justify-content:space-between;font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--line);color:var(--muted)}
+  .kv:last-child{border:0} .kv b{color:var(--ink);font-weight:600}
+  .sib{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .sib:last-child{border:0}
+  .sib .ix{width:24px;height:24px;border-radius:7px;background:var(--raise);display:grid;place-items:center;font-family:"Fraunces";font-size:12px;color:var(--muted);flex:none}
+  .sib.on .ix{background:var(--ember);color:#fff}
+  .sib .nm{font-size:13.5px}
+  .sib .pc{margin-left:auto;font-size:12px;color:var(--faint)}
+</style>
+</head>
+<body>
+<header>
+  <a class="mark" href="direction-a-home.html"><span class="dot"></span><b>Pinpoint</b></a>
+  <a class="search" href="direction-a-library.html">Search videos, notes, transcripts…</a>
+  <div class="barr"><span class="ghost">🔥 12-day streak</span><span class="ghost" style="color:#9a6a16">8 due</span><span class="ava">FZ</span></div>
+</header>
+
+<div class="shell">
+  <aside class="side">
+    <div class="ws"><span class="ic"></span>BJJ — Closed Guard <span class="cv">▾</span></div>
+    <div class="navl">Workspace</div>
+    <div class="nav">
+      <a href="direction-a-home.html"><span class="gi">⌂</span>Home</a>
+      <a href="direction-a-library.html"><span class="gi">▦</span>Library</a>
+      <a class="on" href="direction-a-course.html"><span class="gi">❏</span>Courses</a>
+      <a href="direction-a-tatami.html"><span class="gi">▶</span>Continue watching</a>
+      <a href="direction-a-library.html"><span class="gi">⌕</span>Search</a>
+    </div>
+    <div class="navl">Learning</div>
+    <div class="nav">
+      <a href="#"><span class="gi">⟳</span>Review<span class="cnt">8</span></a>
+      <a href="#"><span class="gi">▤</span>Notebook</a>
+      <a href="#"><span class="gi">🥋</span>Training log</a>
+      <a href="#"><span class="gi">◷</span>Positions</a>
+    </div>
+    <div style="margin-top:auto;font-size:12px;color:var(--faint);padding:10px">Direction A · Tatami</div>
+  </aside>
+
+  <main>
+    <div class="crumbs">Curriculum · <a href="#">The Guard Player's Path</a> · Course 2 of 4</div>
+
+    <div class="chead">
+      <div class="cover"><div class="play"><span></span></div></div>
+      <div>
+        <div class="ctitle">Closed Guard System</div>
+        <div class="cby"><span class="pic"></span> Marcelo Garcia · 9 lessons · 4h 52m</div>
+        <div class="cmeta">
+          <span class="pill">18 of your notes</span>
+          <span class="pill"># grips · # sweeps · # posture</span>
+          <span class="pill fork">⑂ forked from “MG Online”</span>
+        </div>
+        <div style="font-size:13px;color:var(--muted);display:flex;justify-content:space-between"><span>60% complete · resumes at Lesson 4</span><span>5 / 9 watched</span></div>
+        <div class="pbar"><i style="width:60%"></i></div>
+        <div class="cactions">
+          <a class="act primary" href="direction-a-tatami.html">▶ Resume Lesson 4</a>
+          <span class="act">↪ Share</span><span class="act">⑂ Fork</span><span class="act">＋ Add video</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="lessons">
+        <div class="chapter">
+          <div class="ch-h"><span class="n">Chapter I · Establishing the guard</span><span class="line"></span><span class="meta">3 lessons</span></div>
+          <a class="lesson" href="direction-a-tatami.html"><span class="grip">⠿</span><span class="num">1</span><div class="cov"><span class="d">22:10</span><span class="pb"><i style="width:100%"></i></span></div><div class="info"><div class="tt">Posture, grips &amp; the high guard</div><div class="ss"><span>22:10</span><span class="nb">3 notes</span></div></div><span class="state done">✓ Watched</span></a>
+          <a class="lesson" href="direction-a-tatami.html"><span class="grip">⠿</span><span class="num">2</span><div class="cov"><span class="d">18:44</span><span class="pb"><i style="width:100%"></i></span></div><div class="info"><div class="tt">Breaking the cross-face</div><div class="ss"><span>18:44</span><span class="nb">2 notes</span></div></div><span class="state done">✓ Watched</span></a>
+          <a class="lesson" href="direction-a-tatami.html"><span class="grip">⠿</span><span class="num">3</span><div class="cov"><span class="d">28:51</span><span class="pb"><i style="width:100%"></i></span></div><div class="info"><div class="tt">Pendulum sweep mechanics</div><div class="ss"><span>28:51</span><span class="nb">4 notes</span></div></div><span class="state done">✓ Watched</span></a>
+        </div>
+
+        <div class="chapter">
+          <div class="ch-h"><span class="n">Chapter II · Sweeps &amp; submissions</span><span class="line"></span><span class="meta">4 lessons</span></div>
+          <a class="lesson" href="direction-a-tatami.html" style="border-color:rgba(226,87,31,.4)"><span class="grip">⠿</span><span class="num">4</span><div class="cov"><span class="d">62:14</span><span class="pb"><i style="width:30%"></i></span></div><div class="info"><div class="tt">Breaking posture &amp; the hip-bump sweep</div><div class="ss"><span>62:14 · 18:42 in</span><span class="nb">4 notes</span></div></div><span class="state now">● Resume</span></a>
+          <a class="lesson" href="direction-a-tatami.html"><span class="grip">⠿</span><span class="num">5</span><div class="cov"><span class="d">41:08</span><span class="pb"><i style="width:0"></i></span></div><div class="info"><div class="tt">Overhook control &amp; the kimura trap</div><div class="ss"><span>41:08</span><span class="nb">2 notes</span></div></div><span class="state todo">Not started</span></a>
+          <a class="lesson" href="direction-a-tatami.html"><span class="grip">⠿</span><span class="num">6</span><div class="cov"><span class="d">35:20</span><span class="pb"><i style="width:40%"></i></span></div><div class="info"><div class="tt">Scissor sweep &amp; the technical stand</div><div class="ss"><span>35:20 · 14:05 in</span><span class="nb">2 notes</span></div></div><span class="state todo">In progress</span></a>
+          <a class="lesson" href="direction-a-tatami.html"><span class="grip">⠿</span><span class="num">7</span><div class="cov"><span class="d">27:33</span><span class="pb"><i style="width:0"></i></span></div><div class="info"><div class="tt">The triangle from closed guard</div><div class="ss"><span>27:33</span><span class="nb">0 notes</span></div></div><span class="state todo">Not started</span></a>
+        </div>
+      </div>
+
+      <aside class="rail">
+        <div class="card">
+          <h4>About this course</h4>
+          <div class="kv">Lessons <b>9</b></div>
+          <div class="kv">Total length <b>4h 52m</b></div>
+          <div class="kv">Your notes <b>18</b></div>
+          <div class="kv">Cards in review <b>6</b></div>
+          <div class="kv">Source <b>upload · HLS</b></div>
+        </div>
+        <div class="card">
+          <h4>Part of curriculum</h4>
+          <div style="font-family:'Fraunces';font-size:16px;margin-bottom:8px">The Guard Player's Path</div>
+          <div class="sib"><span class="ix">1</span><span class="nm">Open Guard Primer</span><span class="pc">100%</span></div>
+          <div class="sib on"><span class="ix">2</span><span class="nm">Closed Guard System</span><span class="pc">60%</span></div>
+          <div class="sib"><span class="ix">3</span><span class="nm">Half Guard Foundations</span><span class="pc">0%</span></div>
+          <div class="sib"><span class="ix">4</span><span class="nm">Guard Retention</span><span class="pc">0%</span></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+</body>
+</html>

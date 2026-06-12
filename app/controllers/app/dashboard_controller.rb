@@ -10,7 +10,10 @@ module App
         continueWatching: recents.filter_map { |p|
           video = videos[p.trackable_id]
           { id: video.id, title: video.title, resumeSeconds: p.resume_seconds } if video
-        }
+        },
+        recentNotes: Note.order(created_at: :desc).limit(5).includes(:category, :tags, :rich_text_body).map { |n| note_json(n) },
+        noteCount: Note.count,
+        videoCount: Video.count
       }
     end
   end

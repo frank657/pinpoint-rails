@@ -12,82 +12,112 @@ interface NoteRow {
   category: string | null
   tags: string[]
 }
+interface Category { id: number; name: string }
 
-interface Category {
-  id: number
-  name: string
-}
-
-export default function NotesIndex({
-  notes,
-  categories,
-  filters,
-}: {
+interface Props {
   notes: NoteRow[]
   categories: Category[]
   tags: string[]
   filters: { categoryId: string | null; tag: string | null; q: string | null }
-}) {
-  const form = useForm({ q: filters.q ?? '', category_id: filters.categoryId ?? '' })
-  const applyFilters = () => router.get('/notes', { q: form.data.q, category_id: form.data.category_id }, { preserveState: true })
+}
+
+const excerpt = (html: string) => {
+  const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+  return text.length > 160 ? text.slice(0, 160) + '…' : text
+}
+
+export default function NotesIndex({ notes, categories, filters }: Props) {
+  const form = useForm({ q: filters.q ?? '' })
+  const go = (params: Record<string, string | undefined>) =>
+    router.get('/notes', { q: filters.q ?? undefined, category_id: filters.categoryId ?? undefined, ...params }, { preserveState: true, preserveScroll: true })
+
+  const activeCat = filters.categoryId ?? null
 
   return (
     <AppShell>
       <Head title="Notes · Pinpoint" />
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Notes</h1>
-        <Link href="/notes/new" className="rounded-lg bg-amber-400 px-4 py-2 text-sm font-medium text-neutral-950 hover:bg-amber-300">
-          + Rich note
+
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-medium tracking-tight">Notes</h1>
+          <p className="mt-1 text-[15px] text-neutral-500">Every timestamped insight and rich note across your notebooks.</p>
+        </div>
+        <Link href="/notes/new" className="rounded-xl bg-ember px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_22px_-10px_rgba(226,87,31,0.6)] hover:bg-amber-500">
+          + New note
         </Link>
       </div>
 
-      <div className="mt-4 flex gap-2">
+      <form onSubmit={(e) => { e.preventDefault(); go({ q: form.data.q || undefined }) }} className="mt-5">
         <input
-          placeholder="Search notes…"
           value={form.data.q}
           onChange={(e) => form.setData('q', e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-          className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-amber-400 focus:outline-none"
+          placeholder="Search your notes…"
+          className="w-full rounded-xl border border-neutral-200 bg-surface px-4 py-2.5 text-sm focus:border-ember focus:outline-none"
         />
-        <select
-          value={form.data.category_id}
-          onChange={(e) => { form.setData('category_id', e.target.value); setTimeout(applyFilters, 0) }}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-        >
-          <option value="">All categories</option>
-          {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-        <button onClick={applyFilters} className="rounded-lg border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-50">Search</button>
-      </div>
+      </form>
 
-      <ul className="mt-6 space-y-3">
-        {notes.length === 0 && <li className="rounded-xl border border-dashed border-neutral-300 p-12 text-center text-neutral-400">No notes found.</li>}
-        {notes.map((note) => (
-          <li key={note.id} className="rounded-xl border border-neutral-200 bg-white p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                {note.videoId && note.startSeconds != null && (
-                  <Link href={`/videos/${note.videoId}`} className="font-mono text-xs text-amber-600">
-                    {formatTime(note.startSeconds)}
-                  </Link>
-                )}
-                {note.title && <p className="font-medium">{note.title}</p>}
-                {note.body && (
-                  <div className="prose prose-sm mt-1 max-w-none text-neutral-600" dangerouslySetInnerHTML={{ __html: note.body }} />
-                )}
-                <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
-                  {note.category && <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-neutral-500">{note.category}</span>}
-                  {note.tags.map((t) => <span key={t} className="text-amber-600">#{t}</span>)}
-                </div>
-              </div>
-              <div className="flex shrink-0 flex-col items-end gap-1">
-                <button onClick={() => router.post('/review', { note_id: note.id })} className="text-xs text-amber-600 hover:underline">+ Review</button>
-                <button onClick={() => router.delete(`/notes/${note.id}`)} className="text-xs text-neutral-300 hover:text-red-500">Delete</button>
-              </div>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {categories.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            onClick={() => go({ category_id: undefined })}
+            className={`rounded-full px-3 py-1 text-xs ${activeCat === null ? 'bg-neutral-900 text-white' : 'border border-neutral-200 text-neutral-600 hover:bg-neutral-100'}`}
+          >
+            All
+          </button>
+          {categories.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => go({ category_id: String(c.id) })}
+              className={`rounded-full px-3 py-1 text-xs ${activeCat === String(c.id) ? 'bg-neutral-900 text-white' : 'border border-neutral-200 text-neutral-600 hover:bg-neutral-100'}`}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {notes.length === 0 ? (
+        <div className="mt-6 rounded-2xl border border-dashed border-neutral-300 bg-surface px-6 py-16 text-center">
+          <p className="font-display text-xl text-neutral-700">Nothing here yet</p>
+          <p className="mt-1 text-sm text-neutral-500">Take a timestamped note on a video, or write a rich note.</p>
+          <Link href="/notes/new" className="mt-5 inline-block rounded-lg bg-ember px-4 py-2 text-sm font-medium text-white hover:bg-amber-500">+ New note</Link>
+        </div>
+      ) : (
+        <ul className="mt-5 space-y-3">
+          {notes.map((n) => {
+            const point = n.noteType === 'timestamp'
+            const href = n.videoId ? `/videos/${n.videoId}` : '/notes/new'
+            return (
+              <li key={n.id}>
+                <Link
+                  href={href}
+                  className="group block rounded-2xl border border-neutral-200 bg-surface p-4 transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-22px_rgba(120,80,40,0.55)]"
+                >
+                  <div className="flex items-center gap-2.5">
+                    {point && n.startSeconds != null ? (
+                      <span className="rounded-md bg-teal px-2 py-0.5 font-display text-xs tabular-nums text-white">{formatTime(n.startSeconds)}</span>
+                    ) : (
+                      <span className="rounded-md bg-gold/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-gold">note</span>
+                    )}
+                    {n.title && <span className="font-medium text-neutral-900">{n.title}</span>}
+                    {n.category && <span className="ml-auto text-xs text-neutral-400">{n.category}</span>}
+                  </div>
+                  {n.body && excerpt(n.body) && (
+                    <p className="mt-2 line-clamp-2 text-sm text-neutral-600">{excerpt(n.body)}</p>
+                  )}
+                  {n.tags.length > 0 && (
+                    <div className="mt-2.5 flex flex-wrap gap-1.5">
+                      {n.tags.map((t) => (
+                        <span key={t} className="rounded-full border border-neutral-200 px-2 py-0.5 text-[11.5px] text-neutral-500">#{t}</span>
+                      ))}
+                    </div>
+                  )}
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      )}
     </AppShell>
   )
 }

@@ -9,6 +9,9 @@ module App
     def show
       video = Video.find(params[:id])
       authorize! video, to: :show?
+      # Reconcile Vod status on every show-page load so a video stuck at "uploading"
+      # (webhook-unreachable in dev, or delayed delivery in prod) self-heals on first visit.
+      video.vod&.sync_from_provider! if video.upload? && !video.vod&.ready?
       render inertia: "videos/Show", props: {
         video: video_json(video),
         playback: playback_json(video),
@@ -46,6 +49,23 @@ module App
       head :created
     end
 
+    # Step 2 of the direct-upload flow: create the Video record after the client has confirmed
+    # the Vod reached at least "uploaded" via the status poll. We accept the signed_id minted
+    # in Vod::DirectUploadsController#create and validate ownership + upload state here.
+    def create
+      vod = ::Vod.find_signed!(params[:signed_id], purpose: :vod_upload)
+      raise ActiveRecord::RecordNotFound unless vod.uploaded_by == current_user
+      raise ActionController::BadRequest, "vod not yet uploaded" unless vod.uploaded_to_provider?
+
+      video = Video.create!(
+        source:      :upload,
+        vod:         vod,
+        title:       params[:title].presence || vod.filename,
+        uploaded_by: current_user
+      )
+      render json: { videoId: video.id }, status: :created
+    end
+
     # Inertia flow: paste a YouTube link.
     def create_youtube
       result = Youtube::Ingest.call(params[:url])
@@ -61,11 +81,20 @@ module App
       redirect_to app_videos_path, inertia: { errors: { url: e.message } }
     end
 
-    # JSON poll for upload progress (reads DB status set by the Aliyun webhook).
+    # JSON poll for upload progress. Reconciles against the real Aliyun state on each poll so
+    # the video advances past "uploading" even when the webhook can't reach the server (e.g. dev).
     def status
       video = Video.find(params[:id])
       authorize! video, to: :status?
+      video.vod&.sync_from_provider! if video.upload? && !video.vod&.ready?
       render json: { status: video.upload_status, playable: video.playable? }
+    end
+
+    def update
+      video = Video.find(params[:id])
+      authorize! video, to: :update?
+      video.update!(title: params[:title].to_s.strip.presence || video.title)
+      redirect_to app_video_path(video)
     end
 
     def destroy
@@ -99,6 +128,10 @@ module App
         { source: "youtube", youtubeId: video.youtube_id }
       elsif video.vod&.ready?
         { source: "upload", status: "ready", hlsUrl: safe_hls(video.vod) }
+      elsif video.vod&.uploaded?
+        # Mezzanine (original file) is playable immediately — don't make the user wait for
+        # transcoding. The player uses a native <video> src for this URL (not HLS.js).
+        { source: "upload", status: "uploaded", mediaUrl: safe_media(video.vod) }
       else
         { source: "upload", status: video.upload_status, hlsUrl: nil }
       end
@@ -106,6 +139,12 @@ module App
 
     def safe_hls(vod)
       vod.url("m3u8")
+    rescue AliVod::Error
+      nil
+    end
+
+    def safe_media(vod)
+      vod.url
     rescue AliVod::Error
       nil
     end

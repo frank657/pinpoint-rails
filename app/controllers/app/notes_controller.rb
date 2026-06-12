@@ -61,7 +61,7 @@ module App
     end
 
     def note_attrs
-      params.permit(:note_type, :video_id, :category_id, :folder_id, :title, :start_seconds, :end_seconds, :body)
+      params.permit(:note_type, :video_id, :category_id, :title, :start_seconds, :end_seconds, :body)
     end
 
     # Curated taxonomy (Phase 10) — separate from free tags.

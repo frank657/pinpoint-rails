@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pinpoint · Direction C — Command Deck (YouTube layout)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#eef1f4; --bg2:#ffffff; --panel:#ffffff; --raise:#eef1f5; --hi:#e3e8ee;
+    --ink:#161a1e; --muted:#5b646c; --faint:#98a0a8;
+    --line:rgba(20,28,36,.10); --line2:rgba(20,28,36,.17);
+    --indigo:#3a59ff; --indigo-soft:#eef1ff; --teal:#0e9aa7; --amber:#c77d16; --rose:#e0455a;
+    --pt:var(--teal); --rg:var(--amber); --cz:var(--indigo);
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:"Archivo",system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.45;font-size:14px}
+  a{color:inherit;text-decoration:none}
+  .mono{font-family:var(--mono)}
+
+  header{position:sticky;top:0;z-index:50;height:52px;display:flex;align-items:center;gap:16px;padding:0 18px;background:var(--bg2);border-bottom:1px solid var(--line)}
+  .logo{display:flex;align-items:center;gap:8px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;font-size:13px}
+  .logo .sq{width:13px;height:13px;border-radius:3px;background:var(--indigo);box-shadow:0 0 0 3px var(--indigo-soft)}
+  .cmdk{flex:1;max-width:520px;margin:0 auto;display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line2);border-radius:8px;padding:7px 13px;color:var(--muted);font-size:13px;cursor:pointer}
+  .cmdk kbd{margin-left:auto;font-family:var(--mono);font-size:11px;background:var(--raise);border:1px solid var(--line2);border-radius:4px;padding:1px 6px;color:var(--ink)}
+  .barr{display:flex;align-items:center;gap:11px}
+  .ghost{font-family:var(--mono);font-size:11.5px;color:var(--muted);border:1px solid var(--line2);border-radius:6px;padding:5px 10px}
+  .ava{width:31px;height:31px;border-radius:7px;background:conic-gradient(from 120deg,var(--indigo),var(--teal));display:grid;place-items:center;font-size:11px;color:#fff;font-weight:700}
+
+  .yt{max-width:1580px;margin:0 auto;padding:18px;display:grid;grid-template-columns:minmax(0,1fr) 392px;gap:22px;align-items:start}
+  @media(max-width:1080px){.yt{grid-template-columns:1fr}}
+
+  .player{position:relative;border-radius:11px;overflow:hidden;background:#000;aspect-ratio:16/9;border:1px solid var(--line);box-shadow:0 20px 44px -32px rgba(20,40,80,.5)}
+  .player .scene{position:absolute;inset:0;background:radial-gradient(120% 130% at 70% 12%,#33414f,#1a232c 55%,#10161c);display:grid;place-items:center}
+  .player .big{width:72px;height:72px;border-radius:12px;border:1px solid rgba(255,255,255,.4);display:grid;place-items:center;background:rgba(0,0,0,.24);cursor:pointer;transition:.16s}
+  .player .big:hover{border-color:#fff}
+  .player .big::after{content:"";border-left:18px solid #fff;border-top:11px solid transparent;border-bottom:11px solid transparent;margin-left:4px}
+  .hud{position:absolute;left:13px;top:11px;font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.6)}
+  .hud b{color:#6fd2dd}
+  .ctrl{position:absolute;left:0;right:0;bottom:0;padding:0 13px 10px;background:linear-gradient(180deg,transparent,rgba(8,12,18,.6))}
+  .bar-line{position:relative;height:4px;border-radius:4px;background:rgba(255,255,255,.26);margin-bottom:10px;cursor:pointer}
+  .bar-line .f{position:absolute;left:0;top:0;bottom:0;width:30%;background:var(--indigo);border-radius:4px}
+  .bar-line .f::after{content:"";position:absolute;right:-6px;top:50%;width:13px;height:13px;border-radius:50%;background:var(--indigo);transform:translateY(-50%);box-shadow:0 1px 3px rgba(0,0,0,.4)}
+  .pin{position:absolute;top:50%;width:9px;height:9px;background:var(--c);transform:translate(-50%,-50%) rotate(45deg);border:1px solid rgba(255,255,255,.5);cursor:pointer}
+  .pin span{position:absolute;bottom:13px;left:50%;transform:translate(-50%,0) rotate(-45deg);white-space:nowrap;font-family:var(--mono);font-size:10.5px;color:#fff;background:var(--ink);padding:2px 6px;border-radius:4px;opacity:0;transition:.14s;pointer-events:none}
+  .pin:hover span{opacity:1}
+  .ctrl .row{display:flex;align-items:center;gap:15px;color:#fff}
+  .ctrl .ic{font-size:15px;opacity:.92;cursor:pointer}
+  .ctrl .time{font-family:var(--mono);font-size:12px;opacity:.9}
+  .ctrl .sp{margin-left:auto}
+
+  h1{font-size:21px;font-weight:700;line-height:1.2;margin:14px 0 10px;letter-spacing:-.01em}
+  .metarow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .chan{display:flex;align-items:center;gap:11px}
+  .chan .pic{width:40px;height:40px;border-radius:9px;background:linear-gradient(135deg,#33414f,#10161c)}
+  .chan .nm{font-weight:700;font-size:15px}
+  .chan .sub{font-family:var(--mono);font-size:11.5px;color:var(--faint)}
+  .chan .follow{margin-left:8px;background:var(--ink);color:#fff;font-size:13px;font-weight:600;border-radius:7px;padding:8px 15px;cursor:pointer}
+  .actions{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+  .act{display:flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line2);border-radius:7px;padding:8px 13px;font-size:13px;font-weight:500;cursor:pointer;transition:.13s}
+  .act:hover{background:var(--raise)}
+  .act kbd{font-family:var(--mono);font-size:10px;color:var(--faint)}
+  .act.primary{background:var(--indigo);color:#fff;border:none}
+
+  .desc{margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .desc .stats{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+  .desc .stats b{color:var(--ink)}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}
+  .ch{display:flex;gap:7px;align-items:center;padding:5px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;color:var(--muted);cursor:pointer;background:var(--bg2)}
+  .ch:hover{border-color:var(--line2);color:var(--ink)}
+  .ch.on{border-color:var(--indigo);color:var(--indigo);background:var(--indigo-soft)}
+  .ch time{font-family:var(--mono);color:var(--indigo)}
+  .ai{margin-top:12px;border:1px solid var(--line);border-radius:9px;padding:12px;background:var(--bg2)}
+  .ai .k{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .ai p{margin:7px 0 0;font-size:13px;color:#3a4148}
+  .fc{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:7px;padding:6px 11px;margin:10px 7px 0 0;background:var(--panel);font-size:12.5px}
+  .fc b{color:var(--indigo);cursor:pointer;font-family:var(--mono);font-size:11px}
+
+  /* ===== FLOATING NOTES PANEL ===== */
+  .rail{position:sticky;top:66px;display:flex;flex-direction:column;gap:14px}
+  .notes{background:var(--panel);border:1px solid var(--line2);border-radius:11px;box-shadow:0 24px 50px -30px rgba(20,40,80,.5);overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 84px)}
+  .nhead{display:flex;align-items:center;gap:9px;padding:11px 13px;border-bottom:1px solid var(--line)}
+  .nhead .ttl{display:flex;align-items:center;gap:6px;font-weight:700;font-size:14px;cursor:pointer}
+  .nhead .ttl .cv{color:var(--faint);font-size:11px}
+  .nhead .cnt{font-family:var(--mono);font-size:11px;color:var(--indigo);background:var(--indigo-soft);border-radius:5px;padding:1px 7px}
+  .nhead .ics{margin-left:auto;display:flex;gap:11px;color:var(--muted);font-size:14px}
+  .nhead .ics span{cursor:pointer}
+  .ntabs{display:flex;border-bottom:1px solid var(--line)}
+  .ntab{flex:1;text-align:center;padding:9px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+  .ntab.on{color:var(--indigo);border-bottom-color:var(--indigo)}
+  .nbody{overflow-y:auto;padding:6px;flex:1}
+  .nbody::-webkit-scrollbar{width:9px} .nbody::-webkit-scrollbar-thumb{background:var(--hi);border-radius:9px;border:2px solid var(--panel)}
+
+  .note{display:grid;grid-template-columns:auto 1fr;gap:9px;padding:9px;border-radius:8px;cursor:pointer;transition:.12s;align-items:start}
+  .note:hover{background:var(--raise)}
+  .note .ts{font-family:var(--mono);font-size:11.5px;color:#fff;background:var(--c);padding:2px 7px;border-radius:5px;height:fit-content}
+  .note .bd p{margin:0;font-size:13px;color:#2a3138}
+  .note .bd .mt{display:flex;gap:7px;margin-top:4px;align-items:center}
+  .note .bd .ty{font-family:var(--mono);font-size:10px;text-transform:uppercase;color:var(--c)}
+  .note .bd .tg{font-family:var(--mono);font-size:11px;color:var(--faint)}
+  .clz{color:var(--indigo);border-bottom:1px solid var(--indigo);padding-bottom:1px}
+
+  .trl{display:flex;gap:9px;padding:7px;border-radius:7px;cursor:pointer}
+  .trl:hover{background:var(--raise)} .trl.now{background:rgba(14,154,167,.1)}
+  .trl .t{font-family:var(--mono);font-size:11px;color:var(--teal);width:38px;flex:none}
+  .trl p{margin:0;font-size:12.5px;color:#3a4148}
+  .pane{display:none} .pane.on{display:block}
+
+  .capture{padding:11px 12px;border-top:1px solid var(--line);background:var(--bg2)}
+  .capture .top{display:flex;align-items:center;gap:9px}
+  .capture .at{font-family:var(--mono);font-size:11.5px;color:var(--indigo);background:var(--indigo-soft);padding:2px 7px;border-radius:5px}
+  .capture .ph{font-size:13px;color:var(--faint)}
+  .capture .send{margin-left:auto;width:30px;height:30px;border-radius:7px;background:var(--indigo);color:#fff;display:grid;place-items:center;cursor:pointer;font-size:13px}
+  .keys{display:flex;gap:5px;align-items:center;margin-top:9px;font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+  .keys kbd{background:var(--raise);border:1px solid var(--line2);border-radius:4px;padding:1px 5px;color:var(--muted)}
+  .notes.collapsed .ntabs,.notes.collapsed .nbody,.notes.collapsed .capture{display:none}
+
+  .upnext h4{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:2px 4px 9px;font-weight:700}
+  .un{display:flex;gap:10px;padding:6px;border-radius:9px;cursor:pointer}
+  .un:hover{background:var(--bg2)}
+  .un .cov{width:120px;height:68px;border-radius:7px;background:linear-gradient(135deg,#33414f,#10161c);flex:none;position:relative;overflow:hidden}
+  .un .cov .d{position:absolute;right:5px;bottom:5px;font-family:var(--mono);font-size:10px;color:#fff;background:rgba(0,0,0,.65);padding:1px 4px;border-radius:3px}
+  .un .cov .pb{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.3)}
+  .un .cov .pb i{display:block;height:100%;background:var(--indigo)}
+  .un .mt{font-size:13.5px;font-weight:600;line-height:1.25}
+  .un .sb{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:3px}
+  .un .sb .nb{color:var(--indigo)}
+
+  /* command palette */
+  .scrim{position:fixed;inset:0;background:rgba(20,28,40,.34);backdrop-filter:blur(3px);display:none;place-items:start center;padding-top:90px;z-index:80}
+  .palette{width:560px;max-width:90vw;background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:0 40px 90px -28px rgba(20,40,80,.5);overflow:hidden}
+  .palette .inp{display:flex;align-items:center;gap:11px;padding:15px 16px;border-bottom:1px solid var(--line)}
+  .palette .inp .pr{color:var(--indigo);font-family:var(--mono)}
+  .palette .inp input{flex:1;background:transparent;border:0;outline:0;color:var(--ink);font-size:16px;font-family:"Archivo"}
+  .pgrp{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);padding:10px 16px 5px;font-weight:600}
+  .pitem{display:flex;align-items:center;gap:11px;padding:9px 16px;font-size:13.5px;color:var(--muted);cursor:pointer}
+  .pitem:hover,.pitem.sel{background:var(--indigo-soft);color:var(--ink)}
+  .pitem .ico{width:18px;text-align:center;color:var(--teal)}
+  .pitem .at{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><span class="sq"></span>Pinpoint</div>
+  <div class="cmdk" onclick="toggleP()">Search &amp; commands… <kbd>⌘K</kbd></div>
+  <div class="barr">
+    <span class="ghost">🔥 12</span><span class="ghost" style="color:var(--indigo)">due 8</span>
+    <span class="ava">FZ</span>
+  </div>
+</header>
+
+<div class="yt">
+  <div class="primary">
+    <div class="player">
+      <div class="scene"><div class="big"></div></div>
+      <div class="hud">VID·<b>0x4f8a</b> · upload · hls · 1080p</div>
+      <div class="ctrl">
+        <div class="bar-line">
+          <div class="f"></div>
+          <div class="pin" style="left:6%;--c:var(--pt)"><span>0:42 point</span></div>
+          <div class="pin" style="left:23%;--c:var(--rg)"><span>4:30 range</span></div>
+          <div class="pin" style="left:48%;--c:var(--cz)"><span>12:10 cloze</span></div>
+          <div class="pin" style="left:74%;--c:var(--pt)"><span>18:45 point</span></div>
+        </div>
+        <div class="row">
+          <span class="ic">❚❚</span><span class="ic">⏭</span><span class="ic">🔊</span>
+          <span class="time">12:42 / 62:14</span><span class="sp"></span>
+          <span class="ic">CC</span><span class="ic">⚙</span><span class="ic">⛶</span>
+        </div>
+      </div>
+    </div>
+
+    <h1>Breaking Posture &amp; the Hip-Bump Sweep</h1>
+    <div class="metarow">
+      <div class="chan">
+        <div class="pic"></div>
+        <div><div class="nm">Marcelo G.</div><div class="sub">closed-guard-system · 9 lessons</div></div>
+        <span class="follow">Add to course</span>
+      </div>
+      <div class="actions">
+        <span class="act">♡ 864</span><span class="act">↪ Share <kbd>⌘⇧S</kbd></span>
+        <span class="act">⑂ Fork</span><span class="act primary">+ Note <kbd>N</kbd></span>
+      </div>
+    </div>
+
+    <div class="desc">
+      <div class="stats"><b>62:14</b> · upload · hls · ready · <b>4 notes</b> · resume @12:42 · streak 12 · due 8</div>
+      <div class="chips">
+        <div class="ch"><time>0:00</time>Posture control</div>
+        <div class="ch"><time>4:30</time>Grip fighting</div>
+        <div class="ch on"><time>12:10</time>Hip-bump setup</div>
+        <div class="ch"><time>18:45</time>Finishing</div>
+      </div>
+      <div class="ai">
+        <div class="k">✦ AI summary — editable draft</div>
+        <p>Closed-guard hip-bump: secure collar+sleeve, break posture via elbow-knee, load the far hip to sweep; kimura when he posts.</p>
+        <div style="margin-top:2px">
+          <span class="fc">What kills the cross-face? → sleeve grip <b>+ accept</b></span>
+          <span class="fc">Load which hip first? → the far hip <b>+ accept</b></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rail">
+    <div class="notes" id="notes">
+      <div class="nhead">
+        <div class="ttl" onclick="document.getElementById('notes').classList.toggle('collapsed')">Notes <span class="cv">▾</span></div>
+        <span class="cnt">4</span>
+        <div class="ics"><span title="Pop out">⤢</span><span title="Collapse" onclick="document.getElementById('notes').classList.toggle('collapsed')">✕</span></div>
+      </div>
+      <div class="ntabs">
+        <div class="ntab on" data-t="notes">Notes</div>
+        <div class="ntab" data-t="trx">Transcript</div>
+      </div>
+      <div class="nbody">
+        <div class="pane on" data-p="notes">
+          <div class="note"><span class="ts" style="--c:var(--pt)">0:42</span><div class="bd"><p>Collar + sleeve grip beats the cross-face — kill the posting hand first.</p><div class="mt"><span class="ty" style="--c:var(--pt)">point</span><span class="tg">#grips ↪closed-guard</span></div></div></div>
+          <div class="note"><span class="ts" style="--c:var(--rg)">4:30</span><div class="bd"><p>Full posture-break sequence: elbow→knee, break, climb.</p><div class="mt"><span class="ty" style="--c:var(--rg)">range·4:30–6:10</span><span class="tg">#posture</span></div></div></div>
+          <div class="note"><span class="ts" style="--c:var(--cz)">12:10</span><div class="bd"><p>Hip-bump — load the far hip first, <span class="clz">then climb the shoulder</span>.</p><div class="mt"><span class="ty" style="--c:var(--cz)">cloze·due</span><span class="tg">#sweeps →mount</span></div></div></div>
+          <div class="note"><span class="ts" style="--c:var(--pt)">18:45</span><div class="bd"><p>If he posts the far hand → switch straight to kimura.</p><div class="mt"><span class="ty" style="--c:var(--pt)">point</span><span class="tg">#kimura</span></div></div></div>
+        </div>
+        <div class="pane" data-p="trx">
+          <div class="trl"><span class="t">0:38</span><p>First thing — your grips. Collar and sleeve.</p></div>
+          <div class="trl now"><span class="t">0:42</span><p>That sleeve grip kills his cross-face.</p></div>
+          <div class="trl"><span class="t">0:51</span><p>Break posture by connecting elbow to knee.</p></div>
+          <div class="trl"><span class="t">12:10</span><p>Load the far hip — don't sit flat.</p></div>
+          <div class="trl"><span class="t">18:45</span><p>If he posts, the kimura is right there.</p></div>
+        </div>
+      </div>
+      <div class="capture">
+        <div class="top">
+          <span class="at">@12:42</span><span class="ph">Capture a note…</span>
+          <span class="send">➤</span>
+        </div>
+        <div class="keys"><kbd>N</kbd>note<kbd>R</kbd>range<kbd>{{ }}</kbd>cloze<kbd>↵</kbd>save</div>
+      </div>
+    </div>
+
+    <div class="upnext">
+      <h4>Up next · closed-guard-system</h4>
+      <div class="un"><div class="cov"><span class="d">41:08</span><span class="pb"><i style="width:0"></i></span></div><div><div class="mt">Overhook control &amp; the kimura trap</div><div class="sb">L5 · <span class="nb">2 notes</span></div></div></div>
+      <div class="un"><div class="cov"><span class="d">28:51</span><span class="pb"><i style="width:100%"></i></span></div><div><div class="mt">Pendulum sweep mechanics</div><div class="sb">L3 · watched</div></div></div>
+      <div class="un"><div class="cov"><span class="d">35:20</span><span class="pb"><i style="width:40%"></i></span></div><div><div class="mt">Scissor sweep &amp; technical stand</div><div class="sb">L6 · 40%</div></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" onclick="if(event.target===this)toggleP()">
+  <div class="palette">
+    <div class="inp"><span class="pr">›</span><input placeholder="Jump to a note, video, course… or run a command" /><span style="font-family:var(--mono);font-size:11px;color:var(--faint)">esc</span></div>
+    <div class="pgrp">Jump to · 12:10</div>
+    <div class="pitem sel"><span class="ico">◆</span>Note · Hip-bump load the far hip first<span class="at">↵</span></div>
+    <div class="pitem"><span class="ico">▶</span>Video · Breaking Posture &amp; Hip-Bump Sweep<span class="at">g s</span></div>
+    <div class="pgrp">Commands</div>
+    <div class="pitem"><span class="ico" style="color:var(--indigo)">＋</span>New cloze note at 12:42<span class="at">N</span></div>
+    <div class="pitem"><span class="ico" style="color:var(--indigo)">⟳</span>Start review — themed #sweeps<span class="at">8 due</span></div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.ntab').forEach(t=>t.onclick=()=>{
+    document.querySelectorAll('.ntab').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    document.querySelector('.pane[data-p="'+t.dataset.t+'"]').classList.add('on');
+  });
+  function toggleP(){const s=document.getElementById('scrim');s.style.display=s.style.display==='grid'?'none':'grid';}
+  addEventListener('keydown',e=>{
+    if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();toggleP();}
+    if(e.key==='Escape')document.getElementById('scrim').style.display='none';
+  });
+</script>
+</body>
+</html>

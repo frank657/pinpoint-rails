@@ -57,5 +57,5 @@ independent afterward (edits never cross-contaminate).
   not change the original (spec asserts row independence).
 - Forked videos reference the **same** Vod (no re-upload); deleting the source Course/Video
   does not break the fork's playback (reference-count spec).
-- Forked copy starts with **no** progress/review/training state (Axis-3 not copied; spec).
+- Forked copy starts with **no** progress/review state (Axis-3 not copied; spec).
 - A `Fork` record links source→target for attribution.
