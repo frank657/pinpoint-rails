@@ -30,7 +30,7 @@ gem "kamal", require: false
 gem "thruster", require: false
 
 # Image processing for Active Storage variants
-gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 2.0"
 gem "ruby-vips"
 
 # --- Domain stack (ported from method-channel, see docs/decisions/0007) ---
