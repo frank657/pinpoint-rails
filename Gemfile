@@ -57,7 +57,7 @@ gem "pg_search"
 gem "kaminari"
 
 # Notifications, audit trail, i18n (opted in — see docs/decisions/0007)
-gem "noticed", "~> 2.0"
+gem "noticed", "~> 3.0"
 gem "paper_trail"
 gem "paper_trail-association_tracking"
 gem "mobility", "~> 1.3"
