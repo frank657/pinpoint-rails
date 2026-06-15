@@ -43,7 +43,7 @@ gem "action_policy", "~> 0.7"
 gem "acts_as_tenant", "~> 1.0"
 
 # Background jobs
-gem "sidekiq", "~> 7.3"
+gem "sidekiq", "~> 8.1"
 gem "sidekiq-cron"
 
 # Aliyun OSS (Active Storage) + Aliyun VOD (video) — ported in Phase 2
