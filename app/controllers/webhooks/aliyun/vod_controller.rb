@@ -29,18 +29,6 @@ module Webhooks
 
         vod.update!(status: :ready, duration: @info&.dig(0, "Duration"))
         vod.attach_cover_image_from_provider
-        enqueue_transcription(vod)
-      end
-
-      # Kick off ASR for every uploaded Video that references this now-ready Vod. Videos can
-      # span workspaces (a forked video shares the Vod by reference), so we pass each one's
-      # workspace through and let the job re-enter that tenant (docs/decisions/0005).
-      def enqueue_transcription(vod)
-        ActsAsTenant.without_tenant do
-          Video.where(vod_id: vod.id, source: Video.sources[:upload]).find_each do |video|
-            TranscribeJob.perform_later(video.id, video.workspace_id)
-          end
-        end
       end
 
       def set_options

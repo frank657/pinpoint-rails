@@ -7,8 +7,7 @@ module Admin
           workspaces: Workspace.count,
           videos: Video.count,
           vods: Vod.count,
-          notes: Note.count,
-          notebooks: Notebook.count
+          notes: Note.count
         }
       }
     end

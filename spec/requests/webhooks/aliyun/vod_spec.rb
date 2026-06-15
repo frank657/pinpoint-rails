@@ -37,20 +37,6 @@ RSpec.describe "Aliyun VOD webhook", type: :request do
     expect(vod.duration).to eq(61.5)
   end
 
-  it "enqueues ASR transcription for uploaded videos backed by the ready vod" do
-    workspace = create(:workspace)
-    video = ActsAsTenant.with_tenant(workspace) do
-      create(:video, source: :upload, youtube_id: nil, vod: vod, workspace: workspace)
-    end
-
-    expect {
-      post_webhook({
-        "EventType" => "TranscodeComplete", "VideoId" => vod.key, "Extend" => extend_json,
-        "StreamInfos" => [ { "Duration" => "61.5" } ]
-      })
-    }.to have_enqueued_job(TranscribeJob).with(video.id, workspace.id)
-  end
-
   it "rejects an invalid signature" do
     post_webhook({ "EventType" => "FileUploadComplete", "VideoId" => vod.key, "Extend" => extend_json },
                  signature: "wrong")

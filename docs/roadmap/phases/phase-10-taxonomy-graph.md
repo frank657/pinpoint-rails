@@ -29,17 +29,15 @@ into a navigable system ("show every note about closed guard across all my video
 - A **position page** aggregates every note/segment/video referencing it across the
   workspace (Logseq-style transclusion) — "all closed-guard material".
 - A graph/map view of positions linked by techniques; click an edge → its notes/videos.
-- Filter review queues (Phase 8) by position/technique.
 
 ## Key tasks
 1. `Position`, `Technique` models + joins to notes; BJJ seed data; factories/specs.
 2. Tagging UI on notes/segments.
 3. Position aggregation page (all material for a position).
 4. Graph/map visualization (positions + technique edges).
-5. Hook into Phase 8 (scoped reviews) and Phase 9 (session technique links).
 
 ## Out of scope
-- Auto-tagging via AI (could come with Phase 11).
+- Auto-tagging via AI.
 - A global/shared canonical taxonomy across workspaces (each workspace owns its taxonomy;
   cross-workspace canon is a future ADR).
 

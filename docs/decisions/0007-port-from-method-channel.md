@@ -28,13 +28,13 @@ method-channel reference path:
 | **Authorization** | ~~CanCanCan~~ → **Action Policy** (per-resource policy classes) | Superseded by ADR 0008 — CanCanCan is NOT ported. |
 | **Background jobs** | Sidekiq + Sidekiq Cron, Solid Queue, multi-DB (primary/queue/cache/cable) | Same setup. |
 | **acts_as_tenant** | tenancy mechanism | Tenant = **Workspace**, not Creator (ADR 0002). |
-| **FriendlyId** | slugs | Courses, Curriculums, Workspaces, public share pages. |
-| **pg_search** | full-text search | Notes, videos, transcripts. |
+| **FriendlyId** | slugs | Workspaces, public share pages. |
+| **pg_search** | full-text search | Notes. |
 | **Kaminari** | pagination | — |
-| **Noticed** | notifications | "someone forked your course", review reminders. (Owner opted in.) |
+| **Noticed** | notifications | "someone forked your video". (Owner opted in.) |
 | **PaperTrail** | audit / version history | Note edit history, undo. (Owner opted in.) |
 | **Mobility** | i18n (en/zh) | Content + UI translation. (Owner opted in.) |
-| **Testing** | RSpec + FactoryBot + shoulda-matchers + faker | Same structure; stub Aliyun/AI in specs. |
+| **Testing** | RSpec + FactoryBot + shoulda-matchers + faker | Same structure; stub Aliyun in specs. |
 | **Deployment** | Kamal + Thruster + multi-stage Dockerfile (Ruby 3.3.2-slim, Aliyun mirrors) | Adapt hosts/domains for the three subdomains. |
 | **Image processing** | image_processing + ruby-vips | Variants for note images/covers. |
 | **Dev tooling** | dotenv-rails, brakeman, rubocop-rails-omakase, pry, prosopite (N+1), awesome_print, letter_opener | Same. |
@@ -43,9 +43,10 @@ method-channel reference path:
 
 - **Inertia.js + React + Vite** (`inertia_rails`, `vite_rails`) — the frontend (ADR 0001).
 - **Tailwind CSS** — styling.
-- **FSRS** spaced-repetition (Ruby port) — Phase 8.
-- **YouTube ingestion** — oEmbed/metadata + (later) transcript fetch — Phase 2/11.
-- **Transcript + AI** provider (Phase 11) — pluggable; provider TBD.
+- **YouTube ingestion** — oEmbed/metadata — Phase 2.
+
+> Earlier plans also added FSRS spaced-repetition and a Transcript + AI provider; both were
+> later removed (see `../roadmap/DEVELOPMENT_PLAN.md`).
 
 ### DROP / REPLACE (API-era, not needed in a monolith)
 

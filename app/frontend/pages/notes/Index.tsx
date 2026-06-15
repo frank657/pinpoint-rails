@@ -40,7 +40,7 @@ export default function NotesIndex({ notes, categories, filters }: Props) {
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-medium tracking-tight">Notes</h1>
-          <p className="mt-1 text-[15px] text-neutral-500">Every timestamped insight and rich note across your notebooks.</p>
+          <p className="mt-1 text-[15px] text-neutral-500">Every timestamped insight and rich note across your library.</p>
         </div>
         <Link href="/notes/new" className="rounded-xl bg-ember px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_22px_-10px_rgba(226,87,31,0.6)] hover:bg-amber-500">
           + New note

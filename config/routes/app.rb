@@ -19,10 +19,7 @@ scope module: :app, as: :app do
   post "workspaces/:id/switch", to: "workspaces#switch", as: :switch_workspace
 
   resources :videos, only: %i[index show create update destroy] do
-    get  :status,    on: :member
-    get  :summary,   on: :member
-    post "flashcard", to: "videos#accept_flashcard", on: :member
-    post "transcript", to: "transcripts#create",     on: :member
+    get :status, on: :member
   end
   get "search",       to: "search#index"
   get "search/query", to: "search#query"
@@ -37,23 +34,12 @@ scope module: :app, as: :app do
   resources :tags, only: %i[index]
   resources :segments, only: %i[create update destroy]
 
-  resources :notebooks, only: %i[index show create update destroy] do
-    resources :chapters, only: %i[create update destroy], module: :notebooks
-    resources :items, only: %i[create update destroy], module: :notebooks do
-      post :reorder, on: :collection
-    end
-  end
-
   post "progress", to: "progress#upsert"
 
   resources :positions, only: %i[index show create] do
     post :seed, on: :collection
   end
   resources :techniques, only: %i[create]
-
-  get "review", to: "review#index"
-  post "review", to: "review#create", as: :review_cards
-  post "review/:id/grade", to: "review#grade", as: :grade_review_card
 
   resources :shares, only: %i[create destroy]
   get "s/:token", to: "shares#show", as: :share_view

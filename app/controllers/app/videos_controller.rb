@@ -17,36 +17,10 @@ module App
         playback: playback_json(video),
         resumeSeconds: my_progress(video)&.resume_seconds || 0,
         notes: Note.for_video(video).includes(:category, :tags, :rich_text_body).map { |n| note_json(n) },
-        segments: Segment.for_video(video).map { |s| segment_json(s) },
+        segments: Video::Segment.for_video(video).map { |s| segment_json(s) },
         categories: Category.order(:name).map { |c| { id: c.id, name: c.name } },
-        tags: Tag.order(:name).pluck(:name),
-        transcript: TranscriptLine.for_video(video).map { |l| { startSeconds: l.start_seconds, text: l.text } }
+        tags: Tag.order(:name).pluck(:name)
       }
-    end
-
-    # AI summary + flashcard drafts from the transcript (docs/decisions/0009). JSON (axios).
-    def summary
-      video = Video.find(params[:id])
-      authorize! video, to: :show?
-      source = video.transcript_lines.order(:start_seconds).pluck(:text).join(" ")
-      source = video.title if source.blank?
-      render json: { summary: Ai.summarize(source), flashcards: Ai.draft_flashcards(source) }
-    end
-
-    # Accept an AI flashcard draft (front/back, possibly edited): persist it as a rich-text
-    # Note and enroll it in spaced repetition as a Phase 8 review card. This is the bridge
-    # from the AI draft (assistive) to durable, user-owned study material (docs/decisions/0009).
-    def accept_flashcard
-      video = Video.find(params[:id])
-      authorize! video, to: :update?
-      note = Note.create!(
-        note_type: :rich_text,
-        title: params[:front].to_s.strip.presence || "Flashcard",
-        body: params[:back].to_s,
-        created_by: current_user
-      )
-      ReviewCard.sync_for(note, current_user)
-      head :created
     end
 
     # Step 2 of the direct-upload flow: create the Video record after the client has confirmed

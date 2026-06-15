@@ -1,6 +1,6 @@
 # A watchable item — either an uploaded file (backed by a Vod / Aliyun VOD) or a YouTube
-# link. Notes and segments hang off it in later phases. Workspace-scoped content that is
-# reusable across notebooks and forkable (ADR 0010, docs/decisions/0005).
+# link. Notes and segments hang off it. Workspace-scoped content that is forkable
+# (docs/decisions/0005).
 class Video < ApplicationRecord
   acts_as_tenant :workspace
   include Shareable
@@ -10,11 +10,7 @@ class Video < ApplicationRecord
   belongs_to :vod, optional: true
   belongs_to :uploaded_by, class_name: "User", optional: true
   has_many :notes, dependent: :destroy
-  has_many :segments, dependent: :destroy
-  has_many :transcript_lines, dependent: :destroy
-  # Removing a video from a notebook deletes the join, not the video; deleting a video cleans
-  # its joins (ADR 0010).
-  has_many :notebook_items, class_name: "Notebook::Item", dependent: :destroy
+  has_many :segments, class_name: "Video::Segment", dependent: :destroy
 
   validates :title, presence: true
   validates :youtube_id, presence: true, if: :youtube?

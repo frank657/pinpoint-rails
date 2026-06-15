@@ -36,16 +36,8 @@ module App
     inertia_share do
       {
         currentWorkspace: current_workspace && workspace_json(current_workspace),
-        workspaces: current_user.workspaces.order(:created_at).map { |w| workspace_json(w) },
-        dueCount: review_due_count
+        workspaces: current_user.workspaces.order(:created_at).map { |w| workspace_json(w) }
       }
-    end
-
-    # Cards due now for the current user in this workspace — surfaced in the app shell
-    # (sidebar/top-bar badge) on every page (iteration 0001).
-    def review_due_count
-      ReviewCard.due.where(user: current_user)
-        .joins(:note).where(notes: { workspace_id: current_workspace&.id }).count
     end
 
     def workspace_json(workspace)

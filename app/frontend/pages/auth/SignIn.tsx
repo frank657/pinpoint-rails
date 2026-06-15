@@ -5,6 +5,9 @@ import AuthCard, { fieldClass, buttonClass, labelClass } from '../../components/
 export default function SignIn() {
   const form = useForm({ email: '', password: '', remember_me: false })
   const { data, setData, processing, errors } = form
+  // Form-level error (e.g. "Invalid Email or password.") returned by the backend under
+  // the `base` key — not tied to a single field. See Auth::SessionsController#new.
+  const baseError = (errors as Record<string, string>).base
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
@@ -15,6 +18,11 @@ export default function SignIn() {
   return (
     <AuthCard title="Sign in" subtitle="Welcome back to your video learning.">
       <form onSubmit={submit} className="space-y-4">
+        {baseError && (
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+            {baseError}
+          </div>
+        )}
         <div>
           <label className={labelClass} htmlFor="email">Email</label>
           <input

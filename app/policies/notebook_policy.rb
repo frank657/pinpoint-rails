@@ -1,2 +1,0 @@
-class NotebookPolicy < WorkspaceScopedPolicy
-end

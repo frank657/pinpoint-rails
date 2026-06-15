@@ -5,19 +5,11 @@ import axios from 'axios'
 import {
   MagnifyingGlass,
   ClockCounterClockwise,
-  Waveform,
   Note,
   X,
   ArrowElbowDownLeft,
 } from '@phosphor-icons/react'
 import { formatTime } from '../lib/time'
-
-interface TranscriptHit {
-  videoId: number
-  videoTitle: string
-  startSeconds: number
-  text: string
-}
 
 interface NoteHit {
   id: string
@@ -27,7 +19,6 @@ interface NoteHit {
 }
 
 interface Results {
-  transcript: TranscriptHit[]
   notes: NoteHit[]
 }
 
@@ -103,23 +94,6 @@ export default function SearchSpotlight({ open, onClose }: Props) {
   // Build flat navigation list from current results
   const items: FlatItem[] = query.trim()
     ? [
-        ...(results?.transcript.slice(0, 6).map((h, i) => ({
-          key: `t-${i}`,
-          href: `/videos/${h.videoId}`,
-          historyLabel: query,
-          render: () => (
-            <span className="flex min-w-0 items-start gap-3">
-              <Waveform size={15} weight="regular" className="mt-0.5 flex-none text-neutral-400" />
-              <span className="min-w-0">
-                <span className="block truncate text-sm text-neutral-700 line-clamp-1">{h.text}</span>
-                <span className="text-xs text-neutral-400">
-                  <span className="font-mono text-amber-600">{formatTime(h.startSeconds)}</span>
-                  {' · '}{h.videoTitle}
-                </span>
-              </span>
-            </span>
-          ),
-        })) ?? []),
         ...(results?.notes.slice(0, 6).map((n, i) => ({
           key: `n-${i}`,
           href: n.videoId ? `/videos/${n.videoId}` : '/notes',
@@ -224,7 +198,7 @@ export default function SearchSpotlight({ open, onClose }: Props) {
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search videos, notes, transcripts…"
+            placeholder="Search notes…"
             className="flex-1 bg-transparent text-[15px] text-neutral-900 outline-none placeholder:text-neutral-400"
           />
           {query ? (
@@ -286,45 +260,12 @@ export default function SearchSpotlight({ open, onClose }: Props) {
             </p>
           )}
 
-          {/* Transcript hits */}
-          {!loading && (results?.transcript.length ?? 0) > 0 && (
-            <>
-              {sectionLabel('Transcript')}
-              {results!.transcript.slice(0, 6).map((h, i) => {
-                const idx = i
-                return (
-                  <button
-                    key={`t-${i}`}
-                    data-idx={idx}
-                    onClick={() => navigate(`/videos/${h.videoId}`, query)}
-                    onMouseEnter={() => setSelected(idx)}
-                    className={`flex w-full items-start gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
-                      selected === idx ? 'bg-neutral-100' : 'hover:bg-neutral-100'
-                    }`}
-                  >
-                    <Waveform size={15} weight="regular" className="mt-0.5 flex-none text-neutral-400" />
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm text-neutral-700 line-clamp-1">{h.text}</span>
-                      <span className="text-xs text-neutral-400">
-                        <span className="font-mono text-amber-600">{formatTime(h.startSeconds)}</span>
-                        {' · '}{h.videoTitle}
-                      </span>
-                    </span>
-                    {selected === idx && (
-                      <ArrowElbowDownLeft size={13} className="ml-auto mt-1 flex-none text-neutral-400" />
-                    )}
-                  </button>
-                )
-              })}
-            </>
-          )}
-
           {/* Note hits */}
           {!loading && (results?.notes.length ?? 0) > 0 && (
             <>
               {sectionLabel('Notes')}
               {results!.notes.slice(0, 6).map((n, i) => {
-                const idx = (results?.transcript.slice(0, 6).length ?? 0) + i
+                const idx = i
                 return (
                   <button
                     key={`n-${i}`}

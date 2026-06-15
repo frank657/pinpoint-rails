@@ -48,8 +48,7 @@ adds a YouTube source, unified behind one `Video` model.
 6. Player page (HLS + YouTube) exposing time API.
 
 ## Out of scope
-- Notes/segments (Phase 3), courses (Phase 4), transcripts (Phase 11), forking (Phase 5 —
-  but reference-count groundwork lands here).
+- Notes/segments (Phase 3), forking (Phase 5 — but reference-count groundwork lands here).
 
 ## Exit criteria
 - Upload a file → it appears `uploading`, flips to `ready` via webhook (simulated in test,

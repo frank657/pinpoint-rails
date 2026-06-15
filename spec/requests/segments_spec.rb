@@ -14,9 +14,9 @@ RSpec.describe "Segments", type: :request do
   it "creates a labeled segment with a numeric range and auto position" do
     expect {
       post app_segments_path, params: { video_id: video.id, title: "Warmup", start_seconds: "0", end_seconds: "60" }
-    }.to change(Segment, :count).by(1)
+    }.to change(Video::Segment, :count).by(1)
 
-    segment = Segment.last
+    segment = Video::Segment.last
     expect(segment.start_seconds).to eq(0.0)
     expect(segment.end_seconds).to eq(60.0)
     expect(segment.position).to eq(0)
@@ -26,13 +26,13 @@ RSpec.describe "Segments", type: :request do
   it "increments position for subsequent segments on the same video" do
     post app_segments_path, params: { video_id: video.id, start_seconds: "0", title: "A" }
     post app_segments_path, params: { video_id: video.id, start_seconds: "10", title: "B" }
-    expect(Segment.order(:position).pluck(:position)).to eq([ 0, 1 ])
+    expect(Video::Segment.order(:position).pluck(:position)).to eq([ 0, 1 ])
   end
 
   it "updates and deletes a segment" do
     segment = create(:segment, workspace: workspace, video: video)
     patch app_segment_path(segment), params: { title: "Renamed" }
     expect(segment.reload.title).to eq("Renamed")
-    expect { delete app_segment_path(segment) }.to change(Segment, :count).by(-1)
+    expect { delete app_segment_path(segment) }.to change(Video::Segment, :count).by(-1)
   end
 end

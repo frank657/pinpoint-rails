@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :segment do
+  factory :segment, class: "Video::Segment" do
     association :video
     workspace { video&.workspace || association(:workspace) }
     title { "Intro" }

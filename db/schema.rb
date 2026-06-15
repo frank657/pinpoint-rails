@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_05_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_15_122000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -105,43 +105,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_120000) do
     t.index ["technique_id"], name: "index_note_techniques_on_technique_id"
   end
 
-  create_table "notebook_chapters", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.bigint "notebook_id", null: false
-    t.integer "position", default: 0, null: false
-    t.string "title", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "workspace_id", null: false
-    t.index ["notebook_id"], name: "index_notebook_chapters_on_notebook_id"
-    t.index ["workspace_id"], name: "index_notebook_chapters_on_workspace_id"
-  end
-
-  create_table "notebook_items", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.uuid "notebook_chapter_id"
-    t.bigint "notebook_id", null: false
-    t.integer "position", default: 0, null: false
-    t.datetime "updated_at", null: false
-    t.bigint "video_id", null: false
-    t.bigint "workspace_id", null: false
-    t.index ["notebook_chapter_id"], name: "index_notebook_items_on_notebook_chapter_id"
-    t.index ["notebook_id", "video_id"], name: "index_notebook_items_on_notebook_id_and_video_id", unique: true
-    t.index ["notebook_id"], name: "index_notebook_items_on_notebook_id"
-    t.index ["video_id"], name: "index_notebook_items_on_video_id"
-    t.index ["workspace_id"], name: "index_notebook_items_on_workspace_id"
-  end
-
-  create_table "notebooks", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.text "description"
-    t.string "slug"
-    t.string "title", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "workspace_id", null: false
-    t.index ["workspace_id", "slug"], name: "index_notebooks_on_workspace_id_and_slug", unique: true
-    t.index ["workspace_id"], name: "index_notebooks_on_workspace_id"
-  end
-
   create_table "notes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.bigint "category_id"
     t.datetime "created_at", null: false
@@ -186,26 +149,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_120000) do
     t.index ["user_id", "workspace_id", "trackable_type", "trackable_id"], name: "index_progress_unique", unique: true
     t.index ["user_id"], name: "index_progresses_on_user_id"
     t.index ["workspace_id"], name: "index_progresses_on_workspace_id"
-  end
-
-  create_table "review_cards", force: :cascade do |t|
-    t.string "card_template", default: "basic", null: false
-    t.datetime "created_at", null: false
-    t.float "difficulty", default: 0.0, null: false
-    t.datetime "due_at"
-    t.integer "interval_days", default: 0, null: false
-    t.integer "lapses", default: 0, null: false
-    t.datetime "last_reviewed_at"
-    t.uuid "note_id", null: false
-    t.integer "reps", default: 0, null: false
-    t.float "stability", default: 0.0, null: false
-    t.integer "state", default: 0, null: false
-    t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.index ["due_at"], name: "index_review_cards_on_due_at"
-    t.index ["note_id"], name: "index_review_cards_on_note_id"
-    t.index ["user_id", "note_id", "card_template"], name: "index_review_cards_on_user_id_and_note_id_and_card_template", unique: true
-    t.index ["user_id"], name: "index_review_cards_on_user_id"
   end
 
   create_table "segments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -256,20 +199,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_120000) do
     t.index ["from_position_id"], name: "index_techniques_on_from_position_id"
     t.index ["to_position_id"], name: "index_techniques_on_to_position_id"
     t.index ["workspace_id"], name: "index_techniques_on_workspace_id"
-  end
-
-  create_table "transcript_lines", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.float "end_seconds"
-    t.integer "position", default: 0, null: false
-    t.float "start_seconds", null: false
-    t.text "text", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "video_id", null: false
-    t.bigint "workspace_id", null: false
-    t.index ["video_id", "start_seconds"], name: "index_transcript_lines_on_video_id_and_start_seconds"
-    t.index ["video_id"], name: "index_transcript_lines_on_video_id"
-    t.index ["workspace_id"], name: "index_transcript_lines_on_workspace_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -362,13 +291,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_120000) do
   add_foreign_key "note_tags", "tags"
   add_foreign_key "note_techniques", "notes"
   add_foreign_key "note_techniques", "techniques"
-  add_foreign_key "notebook_chapters", "notebooks"
-  add_foreign_key "notebook_chapters", "workspaces"
-  add_foreign_key "notebook_items", "notebook_chapters"
-  add_foreign_key "notebook_items", "notebooks"
-  add_foreign_key "notebook_items", "videos"
-  add_foreign_key "notebook_items", "workspaces"
-  add_foreign_key "notebooks", "workspaces"
   add_foreign_key "notes", "categories"
   add_foreign_key "notes", "users", column: "created_by_id"
   add_foreign_key "notes", "videos"
@@ -377,8 +299,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_120000) do
   add_foreign_key "positions", "workspaces"
   add_foreign_key "progresses", "users"
   add_foreign_key "progresses", "workspaces"
-  add_foreign_key "review_cards", "notes"
-  add_foreign_key "review_cards", "users"
   add_foreign_key "segments", "videos"
   add_foreign_key "segments", "workspaces"
   add_foreign_key "shares", "users", column: "shared_by_id"
@@ -387,8 +307,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_05_120000) do
   add_foreign_key "techniques", "positions", column: "from_position_id"
   add_foreign_key "techniques", "positions", column: "to_position_id"
   add_foreign_key "techniques", "workspaces"
-  add_foreign_key "transcript_lines", "videos"
-  add_foreign_key "transcript_lines", "workspaces"
   add_foreign_key "videos", "users", column: "uploaded_by_id"
   add_foreign_key "videos", "vods"
   add_foreign_key "videos", "workspaces"

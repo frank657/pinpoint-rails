@@ -24,7 +24,7 @@ export default function Dashboard({
   noteCount: number
   videoCount: number
 }) {
-  const { currentWorkspace, currentUser, dueCount } = usePage<AppSharedProps & { dueCount: number }>().props
+  const { currentWorkspace, currentUser } = usePage<AppSharedProps>().props
   const name = currentUser?.email?.split('@')[0] ?? 'there'
 
   return (
@@ -35,12 +35,11 @@ export default function Dashboard({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-[34px] font-medium leading-none tracking-tight">Welcome back, {name}.</h1>
-          <p className="mt-2.5 text-[15px] text-neutral-500">{currentWorkspace?.name ?? 'Your workspace'} · pick up where you left off, or clear today's review.</p>
+          <p className="mt-2.5 text-[15px] text-neutral-500">{currentWorkspace?.name ?? 'Your workspace'} · pick up where you left off.</p>
         </div>
         <div className="flex gap-3 text-sm">
           <Stat n={videoCount} label="videos" />
-          <Stat n={noteCount} label="notes" />
-          <Stat n={dueCount ?? 0} label="due" accent />
+          <Stat n={noteCount} label="notes" accent />
         </div>
       </div>
 
@@ -64,43 +63,32 @@ export default function Dashboard({
         <EmptyHint text="Nothing in progress yet — open a video and start taking timestamped notes." href="/videos" cta="Browse the library →" />
       )}
 
-      {/* today: review + recent notes */}
+      {/* today: recent notes */}
       <Section title="Today" />
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <div className="rounded-2xl border border-neutral-200 bg-[radial-gradient(120%_140%_at_0%_0%,rgba(226,87,31,0.10),transparent_55%)] bg-surface p-6">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-ember">Daily review · FSRS</p>
-          <p className="mt-2 font-display text-5xl font-semibold leading-none">{dueCount ?? 0}</p>
-          <p className="mt-1.5 text-[13.5px] text-neutral-500">{(dueCount ?? 0) === 0 ? "you're all caught up" : 'cards due — only what you should see today'}</p>
-          <Link href="/review" className="mt-5 inline-block w-full rounded-xl bg-ember px-4 py-3 text-center text-sm font-semibold text-white shadow-[0_10px_22px_-10px_rgba(226,87,31,0.6)] hover:bg-amber-500">
-            {(dueCount ?? 0) === 0 ? 'Review anyway →' : 'Start review →'}
-          </Link>
+      <div className="rounded-2xl border border-neutral-200 bg-surface p-6">
+        <div className="mb-1 flex items-center justify-between">
+          <p className="font-display text-lg italic">Recent notes</p>
+          <Link href="/notes" className="text-[13px] font-medium text-amber-600">All notes →</Link>
         </div>
-
-        <div className="rounded-2xl border border-neutral-200 bg-surface p-6">
-          <div className="mb-1 flex items-center justify-between">
-            <p className="font-display text-lg italic">Recent notes</p>
-            <Link href="/notes" className="text-[13px] font-medium text-amber-600">All notes →</Link>
-          </div>
-          {recentNotes.length === 0 ? (
-            <p className="py-6 text-sm text-neutral-400">No notes yet.</p>
-          ) : (
-            <ul>
-              {recentNotes.map((n) => (
-                <li key={n.id} className="border-b border-neutral-100 py-2.5 last:border-0">
-                  <Link href={n.videoId ? `/videos/${n.videoId}` : '/notes'} className="flex items-center gap-2.5">
-                    {n.noteType === 'timestamp' && n.startSeconds != null ? (
-                      <span className="flex-none rounded bg-teal px-1.5 py-0.5 font-display text-[11px] tabular-nums text-white">{formatTime(n.startSeconds)}</span>
-                    ) : (
-                      <span className="flex-none rounded bg-gold/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-gold">note</span>
-                    )}
-                    <span className="truncate text-sm text-neutral-700">{n.title ?? 'Untitled note'}</span>
-                    {n.category && <span className="ml-auto flex-none text-xs text-neutral-400">{n.category}</span>}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        {recentNotes.length === 0 ? (
+          <p className="py-6 text-sm text-neutral-400">No notes yet.</p>
+        ) : (
+          <ul>
+            {recentNotes.map((n) => (
+              <li key={n.id} className="border-b border-neutral-100 py-2.5 last:border-0">
+                <Link href={n.videoId ? `/videos/${n.videoId}` : '/notes'} className="flex items-center gap-2.5">
+                  {n.noteType === 'timestamp' && n.startSeconds != null ? (
+                    <span className="flex-none rounded bg-teal px-1.5 py-0.5 font-display text-[11px] tabular-nums text-white">{formatTime(n.startSeconds)}</span>
+                  ) : (
+                    <span className="flex-none rounded bg-gold/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-gold">note</span>
+                  )}
+                  <span className="truncate text-sm text-neutral-700">{n.title ?? 'Untitled note'}</span>
+                  {n.category && <span className="ml-auto flex-none text-xs text-neutral-400">{n.category}</span>}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* quick links */}
@@ -108,8 +96,8 @@ export default function Dashboard({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           { label: 'Library', href: '/videos', icon: '▦' },
-          { label: 'Notebooks', href: '/notebooks', icon: '❏' },
           { label: 'Notes', href: '/notes', icon: '▤' },
+          { label: 'Positions', href: '/positions', icon: '⌥' },
           { label: 'Search', href: '/search', icon: '⌕' },
         ].map((q) => (
           <Link key={q.label} href={q.href} className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-surface p-4 transition hover:-translate-y-0.5 hover:border-ember">

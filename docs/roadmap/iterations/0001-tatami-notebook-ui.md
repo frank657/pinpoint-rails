@@ -1,5 +1,11 @@
 # Iteration 0001 — Tatami UI + Notebook
 
+> **⚠️ Historical record.** The **Tatami theme** described here is live and still the design
+> direction. The **Notebook** surface, **Folders**, cloze note-type, and the Courses/Curriculums/
+> Review/Training nav were all **removed in the 2026-06-15 teardown** — notes now live at
+> `/notes`, the model is flat (`Video → {Note, Video::Segment}`). This doc is kept as a record
+> of the theme work, not a current spec. See `../../ARCHITECTURE.md`.
+
 > **Status:** ✅ done · **Owner:** Frank · **Started:** 2026-06-05 · **Shipped:** 2026-06-05
 > Iterations are post-Phase design/product passes layered on the finished phase build
 > (`../DEVELOPMENT_PLAN.md`). They do not change locked ADRs; they apply look-and-feel and

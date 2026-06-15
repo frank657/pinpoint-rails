@@ -1,4 +1,4 @@
-# Mixed into forkable/shareable content (Video, Note, Notebook).
+# Mixed into forkable/shareable content (Video, Note).
 module Shareable
   extend ActiveSupport::Concern
 

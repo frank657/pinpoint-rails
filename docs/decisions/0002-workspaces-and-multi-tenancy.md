@@ -10,7 +10,7 @@
 
 Requirement: *"users can have multiple accounts, where each account is for them to manage a
 specific topic."* A user studying BJJ, guitar, and cooking wants those worlds kept
-separate — separate videos, courses, notes, categories, and review queues — under one
+separate — separate videos, notes, categories, and taxonomy — under one
 login, switchable like Notion/Slack.
 
 method-channel already uses `acts_as_tenant`, scoped to its `Creator` model. We adopt the
@@ -19,16 +19,16 @@ same mechanism with a different tenant.
 ## Decision
 
 The tenancy boundary is the **Workspace**. One **User** (a single login / Devise identity)
-belongs to **many** Workspaces through **WorkspaceMembership**; a Workspace has many members
+belongs to **many** Workspaces through **Workspace::Membership**; a Workspace has many members
 (enabling future collaboration). Almost every domain model is
-`acts_as_tenant :workspace` — Video, Course, Curriculum, Note, Category, Tag, Folder,
-Segment, Chapter, and the per-user learning tables are all workspace-scoped.
+`acts_as_tenant :workspace` — Video, Video::Segment, Note, Category, Tag, Position, Technique,
+and the per-user `Progress` table are all workspace-scoped.
 
 - The **current workspace** is resolved per request (from the session, switched via a
   workspace picker) and set as the acts_as_tenant current tenant in a `before_action`.
 - "Switch workspace" changes the active tenant; the URL/app context follows.
 - A User always has at least one Workspace (created on signup, e.g. "Personal").
-- **Sharing/forking crosses workspace boundaries** (see ADR 0005): I can share a Course
+- **Sharing/forking crosses workspace boundaries** (see ADR 0005): I can share a Video
   from my "BJJ" workspace and you fork it into your "Grappling" workspace.
 
 The word presented to users is **"Workspace"** (the chip/switcher says *Switch workspace*).
@@ -40,13 +40,13 @@ Internally the model is `Workspace`.
   cross-topic leakage is structurally prevented.
 - ✅ Multi-member workspaces are available later for free (the join model exists from day
   one) without a migration.
-- ✅ Maps cleanly onto subdomains/routing and onto per-user learning state (review queues
-  are naturally per (user, workspace)).
+- ✅ Maps cleanly onto subdomains/routing and onto per-user state (`Progress` is naturally
+  per (user, workspace)).
 - ⚠️ **Every** tenant query needs a current tenant set, or it raises / returns nothing.
   Background jobs and webhooks must set the tenant explicitly (`ActsAsTenant.with_tenant`).
   Aliyun VOD webhooks arrive without a session — resolve the workspace from the Vod/Video
   record, not the request.
-- ⚠️ Global/cross-tenant tables (User, WorkspaceMembership, Workspace itself, Share links,
+- ⚠️ Global/cross-tenant tables (User, Workspace::Membership, Workspace itself, Share links,
   admin tables) must **not** be `acts_as_tenant` — be deliberate about which side each
   model is on.
 - ⚠️ Uniqueness constraints become per-workspace (e.g. a Category name is unique within a
@@ -59,9 +59,9 @@ Internally the model is `Workspace`.
   profile. Retrofitting true isolation later is painful.
 - **Separate logins per topic.** Rejected: defeats "one user, many topics"; forces
   re-auth and fragments identity, billing, and cross-topic sharing.
-- **Single account + folders only.** Rejected: doesn't satisfy the "separate account per
-  topic" requirement; folders still exist (ADR 0003) but as *intra*-workspace note
-  organization, not the isolation boundary.
+- **Single account + a per-topic filter only.** Rejected: doesn't satisfy the "separate
+  account per topic" requirement; a filter over one shared pool gives weak isolation and muddy
+  ownership, not a real boundary.
 
 ## Sources
 

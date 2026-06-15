@@ -13,8 +13,8 @@ export default function Landing() {
             Pin every moment worth learning.
           </h1>
           <p className="mt-6 text-lg text-neutral-400">
-            Upload videos or paste a YouTube link, take timestamped notes, organize them into
-            notebooks, and study what matters — built for serious video learning.
+            Upload videos or paste a YouTube link, take timestamped notes, and study what
+            matters — built for serious video learning.
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
             <a

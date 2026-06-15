@@ -13,7 +13,6 @@ direct-upload images). Organize them with user-defined **Categories** and free-f
 - `Note` (acts_as_tenant, UUID): `video_id` (nullable for standalone notes),
   `note_type:enum { timestamp, rich_text }`, `start_seconds:float` (nullable),
   `end_seconds:float` (nullable → range vs point), `title`, `category_id` (nullable),
-  `folder_id` (nullable; Folder model lands in Phase 4 — column reserved or added then),
   Action Text rich `body`.
 - **Timestamps are numeric seconds, never strings** (ADR 0004). Range when `end_seconds`
   present; point otherwise.
@@ -29,9 +28,8 @@ direct-upload images). Organize them with user-defined **Categories** and free-f
   axis, different table (ADR 0004).
 
 ### Segment (Axis 1 — content)
-- `Segment` (acts_as_tenant, UUID): `video_id`, `start_seconds`, `end_seconds` (nullable),
-  `title`, `position`. The in-video labeled-range / clip concept (distinct from Course
-  "Chapter", ADR 0003).
+- `Video::Segment` (acts_as_tenant): `video_id`, `start_seconds`, `end_seconds` (nullable),
+  `title`, `position`. The in-video labeled-range / clip concept.
 
 ### Frontend (the signature screen)
 - Video page: **player + time-synced notes panel**. Creating a note captures the player's
@@ -50,8 +48,6 @@ direct-upload images). Organize them with user-defined **Categories** and free-f
 6. Filtering notes by category/tag; pg_search over note title/body.
 
 ## Out of scope
-- Folders & course/curriculum organization (Phase 4 — `folder_id` reserved here).
-- Spaced-repetition review of notes (Phase 8 — ReviewCard is Axis 3, not built here).
 - Position/technique tagging (Phase 10).
 
 ## Exit criteria

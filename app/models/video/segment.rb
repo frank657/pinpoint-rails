@@ -1,6 +1,11 @@
-# A labeled time-range within a single video (the in-video "chapter"/clip concept, distinct
-# from a Notebook Chapter — ADR 0010). Workspace-scoped content. Seconds are numeric.
-class Segment < ApplicationRecord
+# A labeled time-range within a single video (the in-video "chapter"/clip concept).
+# Workspace-scoped content. Seconds are numeric.
+#
+# Table stays "segments": Rails derives it from the demodulized name, set explicitly per the
+# CLAUDE.md convention so a future Video.table_name_prefix can't silently rewrite it.
+class Video::Segment < ApplicationRecord
+  self.table_name = "segments"
+
   acts_as_tenant :workspace
 
   belongs_to :video

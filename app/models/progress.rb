@@ -1,4 +1,4 @@
-# Per-user progress on a trackable (Video / Notebook). Axis 3 (docs/decisions/0004):
+# Per-user progress on a trackable (Video). Axis 3 (docs/decisions/0004):
 # private to (user, workspace), never copied on fork. Not a content table.
 class Progress < ApplicationRecord
   belongs_to :user

@@ -1,4 +1,5 @@
 import { createInertiaApp } from '@inertiajs/react'
+import { createRoot } from 'react-dom/client'
 import axios from 'axios'
 
 // Bridge Rails CSRF with Inertia/axios: the server sets an XSRF-TOKEN cookie
@@ -9,6 +10,10 @@ axios.defaults.xsrfHeaderName = 'X-CSRF-Token'
 
 void createInertiaApp({
   pages: "../pages",
+
+  setup({ el, App, props }) {
+    createRoot(el!).render(<App {...props} />)
+  },
 
   strictMode: true,
 

@@ -12,9 +12,8 @@ module App
 
     def content_path(obj)
       case obj
-      when Notebook then app_notebook_path(obj)
-      when Video    then app_video_path(obj)
-      when Note     then app_notes_path
+      when Video then app_video_path(obj)
+      when Note  then app_notes_path
       else app_root_path
       end
     end

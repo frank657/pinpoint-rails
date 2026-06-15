@@ -1,6 +1,6 @@
 module App
   class ProgressController < BaseController
-    TRACKABLE_TYPES = %w[Video Notebook].freeze
+    TRACKABLE_TYPES = %w[Video].freeze
 
     # Upsert the current user's progress on a trackable (called by the player + completion
     # toggles). Returns 204 — driven by axios, not an Inertia visit.

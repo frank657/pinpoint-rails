@@ -3,9 +3,7 @@ import { useState, useEffect, type ReactNode, type ComponentType } from 'react'
 import {
   House,
   FilmStrip,
-  Notebook,
   MagnifyingGlass,
-  Brain,
   Note,
   TreeStructure,
   CaretDown,
@@ -28,19 +26,17 @@ export interface AppSharedProps {
 
 type PhosphorIcon = ComponentType<{ size?: number; weight?: 'thin' | 'light' | 'regular' | 'bold' | 'fill' | 'duotone'; className?: string }>
 
-const NAV: { group: string; items: { label: string; href: string; icon: PhosphorIcon; badge?: 'due' }[] }[] = [
+const NAV: { group: string; items: { label: string; href: string; icon: PhosphorIcon }[] }[] = [
   {
     group: 'Workspace',
     items: [
       { label: 'Home',      href: '/',          icon: House },
       { label: 'Library',   href: '/videos',    icon: FilmStrip },
-      { label: 'Notebooks', href: '/notebooks', icon: Notebook },
     ],
   },
   {
     group: 'Learning',
     items: [
-      { label: 'Review',    href: '/review',    icon: Brain, badge: 'due' },
       { label: 'Notes',     href: '/notes',     icon: Note },
       { label: 'Positions', href: '/positions', icon: TreeStructure },
     ],
@@ -51,7 +47,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const page = usePage<AppSharedProps>()
   const { currentUser, currentWorkspace, workspaces, flash } = page.props
   const url = page.url
-  const dueCount = (page.props.dueCount as number | undefined) ?? 0
 
   const [wsOpen, setWsOpen] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -97,13 +92,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
           className="mx-auto hidden w-full max-w-lg items-center gap-2 rounded-full border border-neutral-200 bg-surface px-4 py-2 text-sm text-neutral-400 transition hover:border-neutral-300 hover:text-neutral-600 sm:flex"
         >
           <MagnifyingGlass size={15} className="flex-none" />
-          <span className="flex-1 text-left">Search videos, notes, transcripts…</span>
+          <span className="flex-1 text-left">Search notes…</span>
           <kbd className="ml-auto flex-none rounded border border-neutral-200 px-1.5 py-0.5 text-[11px]">⌘K</kbd>
         </button>
         <div className="ml-auto flex items-center gap-3">
-          {dueCount > 0 && (
-            <Link href="/review" className="hidden rounded-full border border-neutral-200 px-3 py-1.5 text-[13px] font-medium text-amber-600 md:inline">{dueCount} due</Link>
-          )}
           <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-ember to-gold text-xs font-bold text-white">
             {currentUser?.email?.[0]?.toUpperCase() ?? 'P'}
           </span>
@@ -179,9 +171,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
                       className="flex-none"
                     />
                     {it.label}
-                    {it.badge === 'due' && dueCount > 0 && (
-                      <span className="ml-auto rounded-full bg-amber-400/15 px-2 font-display text-xs text-amber-600">{dueCount}</span>
-                    )}
                   </Link>
                 ))}
               </div>

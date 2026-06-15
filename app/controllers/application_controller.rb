@@ -17,6 +17,14 @@ class ApplicationController < ActionController::Base
     head :forbidden
   end
 
+  # A stale/invalid CSRF token (an old tab, or after the dev server restarts) otherwise
+  # makes a form POST fail with a silent 422 — the submit appears to do nothing. Redirect
+  # back instead: the redirect refreshes the XSRF-TOKEN cookie (set_csrf_cookie) and
+  # surfaces a recoverable flash, so the retry succeeds.
+  rescue_from ActionController::InvalidAuthenticityToken do
+    redirect_back fallback_location: "/", alert: "Your session expired — please try again."
+  end
+
   # Data shared with every Inertia response across all subdomains.
   inertia_share do
     {

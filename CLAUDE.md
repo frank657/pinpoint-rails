@@ -5,15 +5,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What Pinpoint is
 
 Pinpoint is a **video note-taking & learning platform**. You upload videos (to Aliyun VOD)
-or paste a YouTube link, then take **timestamped notes** (point or time-range) on them,
-organize videos into **Notebooks** (each a set of videos in **Chapters**, plus the notes you
-take on them), label notes with **Categories** and **Tags**, and **share / fork** any of it
-to other users. A **learning layer** (progress, spaced-repetition review, a technique
-taxonomy, and transcript/AI search) sits on top.
+or paste a YouTube link, then take **timestamped notes** (point or time-range) on them, label
+videos inline with **Segments** and notes with **Categories**, **Tags**, and the BJJ
+**Position/Technique** taxonomy, and **share / fork** videos and notes to other users. A light
+**learning layer** (per-user progress + the technique taxonomy graph) sits on top.
 
-> **Content model = Notebook** (ADR 0010, supersedes 0003): `Notebook → Notebook::Chapter →
-> Notebook::Item → Video`. The old **Course / Curriculum / Folder** concepts were removed —
-> don't reintroduce them.
+> **Content model is flat:** `Video → {Note, Video::Segment}` — there is **no** grouping layer.
+> The old **Course / Curriculum / Folder** and **Notebook / Chapter / Item** concepts were
+> removed (along with spaced-repetition review and transcript/AI search) — don't reintroduce
+> them. See ADR 0004 + `docs/ARCHITECTURE.md`.
 
 The author's primary use case is **BJJ (Brazilian Jiu-Jitsu)** instructional study, but the
 product is general-purpose for **any** kind of video learning. Keep the core domain
@@ -26,12 +26,16 @@ Before starting work, check relevant documents:
 - `docs/ARCHITECTURE.md` — full architecture + the canonical data model
 - `docs/roadmap/DEVELOPMENT_PLAN.md` — the phase-by-phase plan and current status
 - `docs/roadmap/phases/` — one file per development phase (we build phase by phase)
+- `docs/roadmap/iterations/` — post-phase units of work; one doc per iteration (TDD, with exit
+  criteria). Start from `_TEMPLATE.md`. **How** to run an iteration: `docs/guides/iteration-guide.md`.
 - `docs/decisions/` — Architecture Decision Records (ADRs): the **locked** decisions. Read
   before changing tenancy, the content model, sharing/forking, or the subdomain layout.
 - `docs/SETUP_CREDENTIALS.md` — the running checklist of secrets/config the **user** must
   provide (Aliyun OSS/VOD, optional YouTube API key, deploy env). Update it as new
   integrations are added.
-- `docs/guides/` — area guides (added as the corresponding subsystem is built)
+- `docs/guides/` — area guides. Key ones: `testing-guide.md` (what/where/how to test),
+  `iteration-guide.md` (how to write an iteration doc + the TDD loop), `models-guide.md`
+  (**read before adding a model, column, or migration** — axes, namespacing, tenancy, DB setup).
 
 **Rule:** the ADRs in `docs/decisions/` are locked. Do not contradict an accepted ADR in
 code. To change one, write a new ADR that supersedes it (see `docs/decisions/README.md`).
@@ -61,14 +65,14 @@ Routes are split by subdomain constraint in `config/routes.rb` / `config/routes/
 ## The three-axis model (see ADR 0004 — internalize this)
 
 Keep these three concerns in **separate tables**; do not entangle them:
-1. **Content** (shared & forkable): Video, Vod, Segment, Notebook, Notebook::Chapter,
-   Notebook::Item, Note.
+1. **Content** (shared & forkable): Video, Vod, Video::Segment, Note.
 2. **Taxonomy** (labels/curated): Category, Tag, Position, Technique.
-3. **Per-user state** (never shared, always private): Progress, ReviewCard.
+3. **Per-user state** (never shared, always private): Progress.
 
-When forking, deep-copy **content**; re-point **taxonomy** into the forker's workspace;
-**never** copy per-user state. Timestamps are stored as **numeric seconds** (floats), never
-formatted strings; notes support an optional `[start_seconds, end_seconds]` range.
+When forking, deep-copy **content**; **never** copy per-user state. (Taxonomy re-pointing on
+fork is a deferred enhancement — forked notes currently start unlabelled; see ADR 0005.)
+Timestamps are stored as **numeric seconds** (floats), never formatted strings; notes support
+an optional `[start_seconds, end_seconds]` range.
 
 ## Common Commands
 
@@ -95,11 +99,15 @@ bin/vite dev                         # Vite dev server (usually via bin/dev)
 
 ## Key Rules (Quick Reference)
 
-**Models & controllers — namespace by domain:**
-- Nest related models under a parent: `Workspace::Membership`, `Video::Segment`, etc. (not
-  `WorkspaceMembership`). Because the parent (e.g. `Workspace`) is itself a table, nested
-  models set `self.table_name = "workspace_memberships"` explicitly (don't use
-  `table_name_prefix` — it also rewrites the parent's own table).
+**Models & controllers — namespace by domain** (full conventions + DB setup: `docs/guides/models-guide.md`):
+- **If a model only exists in relation to a parent resource, nest it under that parent**:
+  `Workspace::Membership`, `Video::Segment` (not `WorkspaceMembership`/`Segment`). This is a
+  standing preference — prefer the namespaced form. Top-level names are for models that stand
+  alone (`Video`, `Note`, `Category`) or are intentionally cross-cutting (`Progress` is
+  polymorphic across trackables, so it stays top-level, not `Video::Progress`).
+- A nested model sets `self.table_name` explicitly (e.g. `self.table_name = "segments"`); don't
+  use `table_name_prefix` — it also rewrites the parent's own table. The namespace also dictates
+  the policy (`Video::SegmentPolicy`), the `has_many … class_name:`, and the factory `class:`.
 - Controllers are namespaced by surface (`App::`, `Admin::`, `Auth::`, `Landing::`,
   `Webhooks::`), and by resource where nested.
 
@@ -117,7 +125,19 @@ bin/vite dev                         # Vite dev server (usually via bin/dev)
   never goes on a content table.
 
 **Testing:**
-- Stub Aliyun VOD and any AI/transcript provider in specs — never hit the network.
+- Stub Aliyun VOD (and any future external provider) in specs — never hit the network.
+- Every feature ships with tests. Pick layers via `docs/guides/testing-guide.md` (request specs
+  are the workhorse; test Inertia actions *as* Inertia requests; prove tenancy + authorization).
+- Test Inertia/React-seam journeys (auth, take-a-note, share) with a **system spec**, not just
+  request specs — that seam is where request specs go blind.
+
+**Development workflow — work in iterations (`docs/guides/iteration-guide.md`):**
+- Non-trivial work = an iteration doc in `docs/roadmap/iterations/NNNN-slug.md` (copy
+  `_TEMPLATE.md`). It must have **exit criteria** before coding starts.
+- Iterations are **TDD**: write the test plan first (red), implement (green), refactor.
+- Exit criteria always include the green gate: `bundle exec rspec`, `npm run check` (tsc),
+  `bin/vite build`, `bundle exec rubocop`. When a mockup is in play, "matches the mockup" is
+  also an exit criterion. Don't call an iteration done until every box is honestly ticked.
 
 ## Toolchain
 

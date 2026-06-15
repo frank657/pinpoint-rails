@@ -10,7 +10,7 @@
 
 method-channel uses **CanCanCan** (a single `Ability` class per namespace). Pinpoint's
 authorization is **resource- and tenant-centric**: "may this user act on this Workspace /
-Course / Note?" almost always reduces to membership + ownership within a Workspace
+Video / Note?" almost always reduces to membership + ownership within a Workspace
 (docs/decisions/0002), and admin is a separate surface (docs/decisions/0006).
 
 For that shape, **per-resource policy objects** scale better than one growing `Ability`
@@ -24,7 +24,7 @@ Use **Action Policy** (`action_policy`) as the authorization layer instead of Ca
 Conventions for this app:
 
 - Policies live in `app/policies/`, one per resource: `ApplicationPolicy` (base, **default
-  deny**) → `WorkspacePolicy`, later `CoursePolicy`, `NotePolicy`, etc.
+  deny**) → `WorkspacePolicy`, `Video::SegmentPolicy`, `NotePolicy`, etc.
 - The authorization **context is the signed-in `User`**, declared once in
   `ApplicationController`:
   ```ruby
