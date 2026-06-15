@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_15_122000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_15_123001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -51,6 +51,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_122000) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "athletes", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "workspace_id", null: false
+    t.index ["workspace_id", "name"], name: "index_athletes_on_workspace_id_and_name", unique: true
+    t.index ["workspace_id"], name: "index_athletes_on_workspace_id"
   end
 
   create_table "categories", force: :cascade do |t|
@@ -224,6 +233,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_122000) do
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
   end
 
+  create_table "video_athletes", force: :cascade do |t|
+    t.bigint "athlete_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "video_id", null: false
+    t.index ["athlete_id"], name: "index_video_athletes_on_athlete_id"
+    t.index ["video_id", "athlete_id"], name: "index_video_athletes_on_video_id_and_athlete_id", unique: true
+    t.index ["video_id"], name: "index_video_athletes_on_video_id"
+  end
+
   create_table "videos", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.float "duration_seconds"
@@ -281,6 +300,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_122000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "athletes", "workspaces"
   add_foreign_key "categories", "workspaces"
   add_foreign_key "forks", "users", column: "forked_by_id"
   add_foreign_key "forks", "workspaces", column: "source_workspace_id"
@@ -307,6 +327,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_122000) do
   add_foreign_key "techniques", "positions", column: "from_position_id"
   add_foreign_key "techniques", "positions", column: "to_position_id"
   add_foreign_key "techniques", "workspaces"
+  add_foreign_key "video_athletes", "athletes"
+  add_foreign_key "video_athletes", "videos"
   add_foreign_key "videos", "users", column: "uploaded_by_id"
   add_foreign_key "videos", "vods"
   add_foreign_key "videos", "workspaces"

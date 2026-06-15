@@ -11,6 +11,7 @@ class Video < ApplicationRecord
   belongs_to :uploaded_by, class_name: "User", optional: true
   has_many :notes, dependent: :destroy
   has_many :segments, class_name: "Video::Segment", dependent: :destroy
+  has_and_belongs_to_many :athletes, join_table: :video_athletes
 
   validates :title, presence: true
   validates :youtube_id, presence: true, if: :youtube?
