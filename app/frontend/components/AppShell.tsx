@@ -6,6 +6,7 @@ import {
   MagnifyingGlass,
   Note,
   TreeStructure,
+  Tag,
   CaretDown,
 } from '@phosphor-icons/react'
 import SearchSpotlight from './SearchSpotlight'
@@ -38,6 +39,7 @@ const NAV: { group: string; items: { label: string; href: string; icon: Phosphor
     group: 'Learning',
     items: [
       { label: 'Notes',     href: '/notes',     icon: Note },
+      { label: 'Tags',      href: '/tags',      icon: Tag },
       { label: 'Positions', href: '/positions', icon: TreeStructure },
     ],
   },

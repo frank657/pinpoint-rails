@@ -4,6 +4,7 @@
 class Note < ApplicationRecord
   acts_as_tenant :workspace
   include Shareable
+  include Taggable
   has_paper_trail
 
   enum :note_type, { timestamp: 0, rich_text: 1 }
@@ -11,7 +12,6 @@ class Note < ApplicationRecord
   belongs_to :video, optional: true
   belongs_to :category, optional: true
   belongs_to :created_by, class_name: "User", optional: true
-  has_and_belongs_to_many :tags, join_table: :note_tags
   has_and_belongs_to_many :positions, join_table: :note_positions
   has_and_belongs_to_many :techniques, join_table: :note_techniques
   has_rich_text :body

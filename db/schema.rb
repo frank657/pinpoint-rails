@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_15_123001) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_15_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -96,16 +96,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_123001) do
     t.index ["position_id"], name: "index_note_positions_on_position_id"
   end
 
-  create_table "note_tags", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.uuid "note_id", null: false
-    t.bigint "tag_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["note_id", "tag_id"], name: "index_note_tags_on_note_id_and_tag_id", unique: true
-    t.index ["note_id"], name: "index_note_tags_on_note_id"
-    t.index ["tag_id"], name: "index_note_tags_on_tag_id"
-  end
-
   create_table "note_techniques", force: :cascade do |t|
     t.uuid "note_id", null: false
     t.bigint "technique_id", null: false
@@ -186,6 +176,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_123001) do
     t.index ["shared_by_id"], name: "index_shares_on_shared_by_id"
     t.index ["token"], name: "index_shares_on_token", unique: true
     t.index ["workspace_id"], name: "index_shares_on_workspace_id"
+  end
+
+  create_table "taggings", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "tag_id", null: false
+    t.string "taggable_id", null: false
+    t.string "taggable_type", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "workspace_id", null: false
+    t.index ["tag_id", "taggable_type", "taggable_id"], name: "index_taggings_on_tag_and_taggable", unique: true
+    t.index ["tag_id"], name: "index_taggings_on_tag_id"
+    t.index ["taggable_type", "taggable_id"], name: "index_taggings_on_taggable_type_and_taggable_id"
+    t.index ["workspace_id"], name: "index_taggings_on_workspace_id"
   end
 
   create_table "tags", force: :cascade do |t|
@@ -307,8 +310,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_123001) do
   add_foreign_key "forks", "workspaces", column: "target_workspace_id"
   add_foreign_key "note_positions", "notes"
   add_foreign_key "note_positions", "positions"
-  add_foreign_key "note_tags", "notes"
-  add_foreign_key "note_tags", "tags"
   add_foreign_key "note_techniques", "notes"
   add_foreign_key "note_techniques", "techniques"
   add_foreign_key "notes", "categories"
@@ -323,6 +324,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_123001) do
   add_foreign_key "segments", "workspaces"
   add_foreign_key "shares", "users", column: "shared_by_id"
   add_foreign_key "shares", "workspaces"
+  add_foreign_key "taggings", "tags"
+  add_foreign_key "taggings", "workspaces"
   add_foreign_key "tags", "workspaces"
   add_foreign_key "techniques", "positions", column: "from_position_id"
   add_foreign_key "techniques", "positions", column: "to_position_id"

@@ -31,7 +31,9 @@ scope module: :app, as: :app do
 
   resources :notes, only: %i[index new create update destroy]
   resources :categories, only: %i[index create update destroy]
-  resources :tags, only: %i[index]
+  resources :tags, only: %i[index create update destroy] do
+    post :merge, on: :member
+  end
   resources :segments, only: %i[create update destroy]
 
   post "progress", to: "progress#upsert"

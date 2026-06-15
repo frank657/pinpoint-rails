@@ -151,7 +151,11 @@ High level; each sub-iteration spells out its own:
 
 ## What shipped
 
-<filled per sub-iteration as they close>
+- **0006a — Polymorphic tagging foundation** (see `0006a-polymorphic-tagging-foundation.md`):
+  `taggings` table (string `taggable_id`, option (i)) + `Tagging` model + `Taggable` concern on
+  `Note`/`Video`; reversible `note_tags` → `taggings` migration; `Tag#merge_into!`/`usage_count`;
+  Tag management page (create/rename/merge/delete) + **Tags** sidebar entry; `video_json` carries
+  tags. Existing note-tag UI + filter preserved.
 
 ## Out of scope (→ later)
 

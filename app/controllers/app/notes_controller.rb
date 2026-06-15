@@ -47,9 +47,15 @@ module App
     def filtered_notes
       notes = Note.all
       notes = notes.where(category_id: params[:category_id]) if params[:category_id].present?
-      notes = notes.joins(:tags).where(tags: { name: params[:tag] }) if params[:tag].present?
+      notes = notes.where("notes.id::text IN (?)", note_ids_for_tag(params[:tag])) if params[:tag].present?
       notes = notes.search(params[:q]) if params[:q].present?
       notes.order(created_at: :desc)
+    end
+
+    # Note ids tagged with `name`. We go via `taggings` (not `joins(:tags)`) because the
+    # polymorphic string `taggable_id` can't be SQL-joined against the UUID `notes.id`.
+    def note_ids_for_tag(name)
+      Tagging.joins(:tag).where(taggable_type: "Note", tags: { name: name }).pluck(:taggable_id)
     end
 
     def respond_after(note)

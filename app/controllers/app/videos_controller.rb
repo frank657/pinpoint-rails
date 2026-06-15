@@ -2,7 +2,7 @@ module App
   class VideosController < BaseController
     def index
       render inertia: "videos/Index", props: {
-        videos: current_workspace_videos.order(created_at: :desc).map { |v| video_json(v) }
+        videos: current_workspace_videos.includes(:tags).order(created_at: :desc).map { |v| video_json(v) }
       }
     end
 
@@ -93,6 +93,7 @@ module App
         durationSeconds: video.duration_seconds,
         status: video.upload_status,
         playable: video.playable?,
+        tags: video.tags.map(&:name),
         createdAt: video.created_at.iso8601
       }
     end

@@ -4,6 +4,7 @@
 class Video < ApplicationRecord
   acts_as_tenant :workspace
   include Shareable
+  include Taggable
 
   enum :source, { upload: 0, youtube: 1 }
 
