@@ -5,8 +5,8 @@ import { PencilSimple, Check, X } from '@phosphor-icons/react'
 import AppShell from '../../components/AppShell'
 import VideoPlayer, { type Playback, type PlayerHandle } from '../../components/VideoPlayer'
 import NotesPanel, { type Note, type TaxonomyRef } from '../../components/NotesPanel'
+import SegmentsEditor, { type Segment } from '../../components/SegmentsEditor'
 import TokenInput from '../../components/TokenInput'
-import { formatTime } from '../../lib/time'
 
 interface VideoDetail {
   id: number
@@ -15,13 +15,6 @@ interface VideoDetail {
   durationSeconds: number | null
   tags: string[]
   athletes: string[]
-}
-
-interface Segment {
-  id: string
-  title: string | null
-  startSeconds: number
-  endSeconds: number | null
 }
 
 interface Category {
@@ -78,20 +71,7 @@ export default function VideoShow({
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
         <div>
           <VideoPlayer ref={player} playback={playback} />
-          {segments.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {segments.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => seek(s.startSeconds)}
-                  className="rounded-full border border-neutral-200 px-3 py-1 text-xs hover:border-amber-400"
-                >
-                  <span className="font-mono text-neutral-400">{formatTime(s.startSeconds)}</span>{' '}
-                  {s.title ?? 'Segment'}
-                </button>
-              ))}
-            </div>
-          )}
+          <SegmentsEditor videoId={video.id} segments={segments} onSeek={seek} getCurrentTime={getCurrentTime} />
         </div>
 
         <div className="lg:h-[70vh]">
