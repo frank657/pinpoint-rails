@@ -22,6 +22,18 @@ RSpec.describe "Search", type: :request do
 
   it "returns empty results for a blank query" do
     get app_search_path, headers: inertia_headers
-    expect(inertia_props(response)["results"]).to eq("notes" => [])
+    expect(inertia_props(response)["results"]).to eq("notes" => [], "videos" => [])
+  end
+
+  it "finds videos by title, tag and featured athlete" do
+    by_title = create(:video, workspace: workspace, title: "Triangle finishes")
+    by_tag = create(:video, workspace: workspace, title: "Untitled A")
+    by_tag.tag_names = [ "triangle" ]
+    by_athlete = create(:video, workspace: workspace, title: "Untitled B")
+    by_athlete.athlete_names = [ "Triangle Joe" ]
+
+    get app_search_query_path(q: "triangle")
+    ids = JSON.parse(response.body)["videos"].map { |v| v["id"] }
+    expect(ids).to contain_exactly(by_title.id, by_tag.id, by_athlete.id)
   end
 end

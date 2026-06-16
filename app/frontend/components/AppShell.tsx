@@ -7,6 +7,7 @@ import {
   Note,
   TreeStructure,
   Tag,
+  FolderSimple,
   UsersThree,
   CaretDown,
 } from '@phosphor-icons/react'
@@ -39,10 +40,11 @@ const NAV: { group: string; items: { label: string; href: string; icon: Phosphor
   {
     group: 'Learning',
     items: [
-      { label: 'Notes',     href: '/notes',     icon: Note },
-      { label: 'Tags',      href: '/tags',      icon: Tag },
-      { label: 'Athletes',  href: '/athletes',  icon: UsersThree },
-      { label: 'Positions', href: '/positions', icon: TreeStructure },
+      { label: 'Notes',      href: '/notes',      icon: Note },
+      { label: 'Categories', href: '/categories', icon: FolderSimple },
+      { label: 'Tags',       href: '/tags',       icon: Tag },
+      { label: 'Athletes',   href: '/athletes',   icon: UsersThree },
+      { label: 'Positions',  href: '/positions',  icon: TreeStructure },
     ],
   },
 ]

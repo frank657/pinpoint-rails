@@ -30,7 +30,9 @@ scope module: :app, as: :app do
   get  "vod/status/:signed_id",       to: "vod/direct_uploads#status", as: :vod_status
 
   resources :notes, only: %i[index new create update destroy]
-  resources :categories, only: %i[index create update destroy]
+  resources :categories, only: %i[index create update destroy] do
+    post :merge, on: :member
+  end
   resources :tags, only: %i[index create update destroy] do
     post :merge, on: :member
   end

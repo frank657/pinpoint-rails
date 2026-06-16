@@ -6,6 +6,7 @@ import {
   MagnifyingGlass,
   ClockCounterClockwise,
   Note,
+  FilmStrip,
   X,
   ArrowElbowDownLeft,
 } from '@phosphor-icons/react'
@@ -18,12 +19,21 @@ interface NoteHit {
   startSeconds: number | null
 }
 
+interface VideoHit {
+  id: number
+  title: string
+  source: 'upload' | 'youtube'
+  poster: string | null
+}
+
 interface Results {
   notes: NoteHit[]
+  videos: VideoHit[]
 }
 
 interface FlatItem {
   key: string
+  kind: 'note' | 'video'
   href: string
   historyLabel: string
   render: () => React.ReactNode
@@ -91,27 +101,45 @@ export default function SearchSpotlight({ open, onClose }: Props) {
     return () => clearTimeout(t)
   }, [query])
 
-  // Build flat navigation list from current results
+  const noteHits = results?.notes.slice(0, 6) ?? []
+  const videoHits = results?.videos.slice(0, 6) ?? []
+
+  // One flat, ordered (notes → videos) list backs keyboard navigation; the rendered sections
+  // pull from it by absolute index so ↑/↓ and Enter stay in sync.
   const items: FlatItem[] = query.trim()
     ? [
-        ...(results?.notes.slice(0, 6).map((n, i) => ({
+        ...noteHits.map((n, i) => ({
           key: `n-${i}`,
+          kind: 'note' as const,
           href: n.videoId ? `/videos/${n.videoId}` : '/notes',
           historyLabel: query,
           render: () => (
-            <span className="flex items-center gap-3">
+            <>
               <Note size={15} weight="regular" className="flex-none text-neutral-400" />
-              <span className="min-w-0 truncate text-sm text-neutral-700">
-                {n.title || <em className="text-neutral-400">Untitled note</em>}
+              <span className="min-w-0 flex-1 truncate text-sm text-neutral-700">
+                {n.title || <em className="text-neutral-400">Untitled</em>}
               </span>
               {n.startSeconds != null && (
-                <span className="ml-auto flex-none font-mono text-xs text-amber-600">
-                  {formatTime(n.startSeconds)}
-                </span>
+                <span className="flex-none font-mono text-xs text-amber-600">{formatTime(n.startSeconds)}</span>
               )}
-            </span>
+            </>
           ),
-        })) ?? []),
+        })),
+        ...videoHits.map((v, i) => ({
+          key: `v-${i}`,
+          kind: 'video' as const,
+          href: `/videos/${v.id}`,
+          historyLabel: query,
+          render: () => (
+            <>
+              <FilmStrip size={15} weight="regular" className="flex-none text-neutral-400" />
+              <span className="min-w-0 flex-1 truncate text-sm text-neutral-700">
+                {v.title || <em className="text-neutral-400">Untitled</em>}
+              </span>
+              <span className="flex-none text-[11px] uppercase tracking-wide text-neutral-400">{v.source}</span>
+            </>
+          ),
+        })),
       ]
     : []
 
@@ -124,13 +152,10 @@ export default function SearchSpotlight({ open, onClose }: Props) {
     [onClose],
   )
 
-  const runHistory = useCallback(
-    (q: string) => {
-      setQuery(q)
-      inputRef.current?.focus()
-    },
-    [],
-  )
+  const runHistory = useCallback((q: string) => {
+    setQuery(q)
+    inputRef.current?.focus()
+  }, [])
 
   const removeHistory = useCallback((entry: string, e: React.MouseEvent) => {
     e.stopPropagation()
@@ -176,9 +201,22 @@ export default function SearchSpotlight({ open, onClose }: Props) {
   const showEmpty = query.trim() && !loading && results && items.length === 0
 
   const sectionLabel = (label: string) => (
-    <p className="px-3 pb-1 pt-3 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
-      {label}
-    </p>
+    <p className="px-3 pb-1 pt-3 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-neutral-400">{label}</p>
+  )
+
+  const row = (item: FlatItem, idx: number) => (
+    <button
+      key={item.key}
+      data-idx={idx}
+      onClick={() => navigate(item.href, item.historyLabel)}
+      onMouseEnter={() => setSelected(idx)}
+      className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
+        selected === idx ? 'bg-neutral-100' : 'hover:bg-neutral-100'
+      }`}
+    >
+      {item.render()}
+      {selected === idx && <ArrowElbowDownLeft size={13} className="flex-none text-neutral-400" />}
+    </button>
   )
 
   return createPortal(
@@ -198,7 +236,7 @@ export default function SearchSpotlight({ open, onClose }: Props) {
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search notes…"
+            placeholder="Search notes & videos…"
             className="flex-1 bg-transparent text-[15px] text-neutral-900 outline-none placeholder:text-neutral-400"
           />
           {query ? (
@@ -209,15 +247,12 @@ export default function SearchSpotlight({ open, onClose }: Props) {
               <X size={15} weight="bold" />
             </button>
           ) : (
-            <kbd className="flex-none rounded border border-neutral-200 px-1.5 py-0.5 text-[11px] text-neutral-400">
-              esc
-            </kbd>
+            <kbd className="flex-none rounded border border-neutral-200 px-1.5 py-0.5 text-[11px] text-neutral-400">esc</kbd>
           )}
         </div>
 
         {/* Results / history pane */}
         <div ref={listRef} className="overflow-y-auto p-2">
-          {/* History */}
           {showHistory && (
             <>
               {sectionLabel('Recent')}
@@ -241,56 +276,31 @@ export default function SearchSpotlight({ open, onClose }: Props) {
             </>
           )}
 
-          {/* Idle, no history */}
           {!query.trim() && history.length === 0 && (
             <p className="px-3 py-6 text-center text-sm text-neutral-400">
               Start typing to search across your library…
             </p>
           )}
 
-          {/* Loading */}
-          {loading && (
-            <p className="px-3 py-6 text-center text-sm text-neutral-400">Searching…</p>
-          )}
+          {loading && <p className="px-3 py-6 text-center text-sm text-neutral-400">Searching…</p>}
 
-          {/* Empty results */}
           {showEmpty && (
             <p className="px-3 py-6 text-center text-sm text-neutral-400">
               No results for <span className="font-medium text-neutral-600">"{query}"</span>
             </p>
           )}
 
-          {/* Note hits */}
-          {!loading && (results?.notes.length ?? 0) > 0 && (
+          {!loading && noteHits.length > 0 && (
             <>
               {sectionLabel('Notes')}
-              {results!.notes.slice(0, 6).map((n, i) => {
-                const idx = i
-                return (
-                  <button
-                    key={`n-${i}`}
-                    data-idx={idx}
-                    onClick={() => navigate(n.videoId ? `/videos/${n.videoId}` : '/notes', query)}
-                    onMouseEnter={() => setSelected(idx)}
-                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
-                      selected === idx ? 'bg-neutral-100' : 'hover:bg-neutral-100'
-                    }`}
-                  >
-                    <Note size={15} weight="regular" className="flex-none text-neutral-400" />
-                    <span className="min-w-0 flex-1 truncate text-sm text-neutral-700">
-                      {n.title || <em className="text-neutral-400">Untitled</em>}
-                    </span>
-                    {n.startSeconds != null && (
-                      <span className="flex-none font-mono text-xs text-amber-600">
-                        {formatTime(n.startSeconds)}
-                      </span>
-                    )}
-                    {selected === idx && (
-                      <ArrowElbowDownLeft size={13} className="flex-none text-neutral-400" />
-                    )}
-                  </button>
-                )
-              })}
+              {items.map((it, i) => (it.kind === 'note' ? row(it, i) : null))}
+            </>
+          )}
+
+          {!loading && videoHits.length > 0 && (
+            <>
+              {sectionLabel('Videos')}
+              {items.map((it, i) => (it.kind === 'video' ? row(it, i) : null))}
             </>
           )}
         </div>
