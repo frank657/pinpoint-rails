@@ -3,7 +3,7 @@ module App
     def index
       notes = filtered_notes
       render inertia: "notes/Index", props: {
-        notes: notes.includes(:category, :tags, :rich_text_body).map { |n| note_json(n) },
+        notes: notes.includes(:category, :tags, :positions, :techniques, :rich_text_body).map { |n| note_json(n) },
         categories: Category.order(:name).map { |c| { id: c.id, name: c.name } },
         tags: Tag.order(:name).pluck(:name),
         filters: { categoryId: params[:category_id], tag: params[:tag], q: params[:q] }

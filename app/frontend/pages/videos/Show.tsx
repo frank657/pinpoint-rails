@@ -5,6 +5,7 @@ import { PencilSimple, Check, X } from '@phosphor-icons/react'
 import AppShell from '../../components/AppShell'
 import VideoPlayer, { type Playback, type PlayerHandle } from '../../components/VideoPlayer'
 import NotesPanel, { type Note } from '../../components/NotesPanel'
+import TokenInput from '../../components/TokenInput'
 import { formatTime } from '../../lib/time'
 
 interface VideoDetail {
@@ -12,6 +13,8 @@ interface VideoDetail {
   title: string
   source: 'upload' | 'youtube'
   durationSeconds: number | null
+  tags: string[]
+  athletes: string[]
 }
 
 interface Segment {
@@ -34,6 +37,7 @@ export default function VideoShow({
   segments,
   categories,
   tags,
+  athletes,
 }: {
   video: VideoDetail
   playback: Playback
@@ -42,6 +46,7 @@ export default function VideoShow({
   segments: Segment[]
   categories: Category[]
   tags: string[]
+  athletes: string[]
 }) {
   const player = useRef<PlayerHandle>(null)
   const seek = (s: number) => player.current?.seek(s)
@@ -64,6 +69,7 @@ export default function VideoShow({
       <Head title={`${video.title} · Pinpoint`} />
       <Link href="/videos" className="text-sm text-neutral-500 hover:text-neutral-900">← All videos</Link>
       <VideoTitle videoId={video.id} title={video.title} />
+      <VideoMeta video={video} allTags={tags} allAthletes={athletes} />
 
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
         <div>
@@ -96,6 +102,56 @@ export default function VideoShow({
         </div>
       </div>
     </AppShell>
+  )
+}
+
+// Inline editor for a video's free tags and featured athletes. Displays chips read-only until
+// you hit "Edit", then swaps to TokenInputs and PATCHes /videos/:id on save.
+function VideoMeta({ video, allTags, allAthletes }: { video: VideoDetail; allTags: string[]; allAthletes: string[] }) {
+  const [editing, setEditing] = useState(false)
+  const [tags, setTags] = useState(video.tags)
+  const [people, setPeople] = useState(video.athletes)
+
+  const save = () => {
+    router.patch(`/videos/${video.id}`, { tag_names: tags, athlete_names: people }, {
+      preserveScroll: true,
+      onSuccess: () => setEditing(false),
+    })
+  }
+
+  const cancel = () => { setTags(video.tags); setPeople(video.athletes); setEditing(false) }
+
+  if (!editing) {
+    return (
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        {video.athletes.map((a) => (
+          <span key={a} className="rounded-full bg-teal/10 px-2.5 py-0.5 text-xs font-medium text-teal">{a}</span>
+        ))}
+        {video.tags.map((t) => (
+          <span key={t} className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">#{t}</span>
+        ))}
+        <button onClick={() => setEditing(true)} className="rounded-full border border-dashed border-neutral-300 px-2.5 py-0.5 text-xs text-neutral-500 hover:border-neutral-400 hover:text-neutral-700">
+          {video.tags.length || video.athletes.length ? 'Edit tags & athletes' : '+ Tags & athletes'}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="mt-3 space-y-2 rounded-xl border border-neutral-200 bg-white p-3">
+      <div>
+        <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-neutral-400">Athletes</label>
+        <TokenInput value={people} onChange={setPeople} suggestions={allAthletes} placeholder="Add an athlete…" chipClassName="bg-teal/10 text-teal" />
+      </div>
+      <div>
+        <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-neutral-400">Tags</label>
+        <TokenInput value={tags} onChange={setTags} suggestions={allTags} placeholder="Add a tag…" />
+      </div>
+      <div className="flex gap-2">
+        <button onClick={save} className="rounded-lg bg-ember px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-500">Save</button>
+        <button onClick={cancel} className="rounded-lg px-3 py-1.5 text-sm text-neutral-500 hover:bg-neutral-100">Cancel</button>
+      </div>
+    </div>
   )
 }
 

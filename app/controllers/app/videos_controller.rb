@@ -126,19 +126,12 @@ module App
         durationSeconds: video.duration_seconds,
         status: video.upload_status,
         playable: video.playable?,
-        poster: poster_url(video),
+        poster: video_poster(video),
         noteCount: video.notes.size,
         athletes: video.athletes.map(&:name),
         tags: video.tags.map(&:name),
         createdAt: video.created_at.iso8601
       }
-    end
-
-    # YouTube thumbnails come free from the video id; uploads fall back to a placeholder in the UI.
-    def poster_url(video)
-      return unless video.youtube? && video.youtube_id.present?
-
-      "https://i.ytimg.com/vi/#{video.youtube_id}/hqdefault.jpg"
     end
 
     def playback_json(video)

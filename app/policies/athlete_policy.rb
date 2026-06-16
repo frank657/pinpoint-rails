@@ -1,0 +1,2 @@
+class AthletePolicy < WorkspaceScopedPolicy
+end

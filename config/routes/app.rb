@@ -42,6 +42,7 @@ scope module: :app, as: :app do
     post :seed, on: :collection
   end
   resources :techniques, only: %i[create]
+  resources :athletes, only: %i[index show create]
 
   resources :shares, only: %i[create destroy]
   get "s/:token", to: "shares#show", as: :share_view
