@@ -1,8 +1,16 @@
 module App
   class VideosController < BaseController
     def index
+      videos = filtered_videos.includes(:tags, :athletes, :notes)
       render inertia: "videos/Index", props: {
-        videos: current_workspace_videos.includes(:tags).order(created_at: :desc).map { |v| video_json(v) }
+        videos: videos.map { |v| video_json(v) },
+        tags: Tag.order(:name).pluck(:name),
+        athletes: Athlete.order(:name).pluck(:name),
+        sources: Video.sources.keys,
+        filters: {
+          q: params[:q], tag: params[:tag], athlete: params[:athlete],
+          source: params[:source], addedFrom: params[:added_from], addedTo: params[:added_to]
+        }
       }
     end
 
@@ -16,10 +24,13 @@ module App
         video: video_json(video),
         playback: playback_json(video),
         resumeSeconds: my_progress(video)&.resume_seconds || 0,
-        notes: Note.for_video(video).includes(:category, :tags, :rich_text_body).map { |n| note_json(n) },
+        notes: Note.for_video(video).includes(:category, :tags, :positions, :techniques, :rich_text_body).map { |n| note_json(n) },
         segments: Video::Segment.for_video(video).map { |s| segment_json(s) },
         categories: Category.order(:name).map { |c| { id: c.id, name: c.name } },
-        tags: Tag.order(:name).pluck(:name)
+        positions: Position.order(:name).map { |p| { id: p.id, name: p.name } },
+        techniques: Technique.order(:name).map { |t| { id: t.id, name: t.name } },
+        tags: Tag.order(:name).pluck(:name),
+        athletes: Athlete.order(:name).pluck(:name)
       }
     end
 
@@ -67,7 +78,10 @@ module App
     def update
       video = Video.find(params[:id])
       authorize! video, to: :update?
-      video.update!(title: params[:title].to_s.strip.presence || video.title)
+      video.title = params[:title].to_s.strip.presence || video.title if params.key?(:title)
+      video.tag_names = name_list(params[:tag_names]) if params.key?(:tag_names)
+      video.athlete_names = name_list(params[:athlete_names]) if params.key?(:athlete_names)
+      video.save!
       redirect_to app_video_path(video)
     end
 
@@ -80,8 +94,27 @@ module App
 
     private
 
-    def current_workspace_videos
-      Video.all # tenant-scoped to the current workspace by acts_as_tenant
+    def filtered_videos
+      videos = Video.all
+      videos = videos.search(params[:q]) if params[:q].present?
+      videos = videos.with_tag(params[:tag]) if params[:tag].present?
+      videos = videos.featuring(params[:athlete]) if params[:athlete].present?
+      videos = videos.from_source(params[:source]) if Video.sources.key?(params[:source])
+      from = parse_date(params[:added_from])&.beginning_of_day
+      to   = parse_date(params[:added_to])&.end_of_day
+      videos = videos.added_between(from, to) if from || to
+      videos.order(created_at: :desc)
+    end
+
+    def parse_date(str)
+      str.present? ? Date.parse(str) : nil
+    rescue ArgumentError
+      nil
+    end
+
+    # Accept either an array or a comma-separated string of names.
+    def name_list(raw)
+      raw.is_a?(Array) ? raw : raw.to_s.split(",")
     end
 
     def video_json(video)
@@ -93,9 +126,19 @@ module App
         durationSeconds: video.duration_seconds,
         status: video.upload_status,
         playable: video.playable?,
+        poster: poster_url(video),
+        noteCount: video.notes.size,
+        athletes: video.athletes.map(&:name),
         tags: video.tags.map(&:name),
         createdAt: video.created_at.iso8601
       }
+    end
+
+    # YouTube thumbnails come free from the video id; uploads fall back to a placeholder in the UI.
+    def poster_url(video)
+      return unless video.youtube? && video.youtube_id.present?
+
+      "https://i.ytimg.com/vi/#{video.youtube_id}/hqdefault.jpg"
     end
 
     def playback_json(video)

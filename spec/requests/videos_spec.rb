@@ -48,6 +48,82 @@ RSpec.describe "Videos", type: :request do
     end
   end
 
+  describe "GET /videos (Library v2)" do
+    it "enriches each card with note count, athletes, tags and a poster" do
+      video = ActsAsTenant.with_tenant(workspace) do
+        v = create(:video, workspace: workspace, title: "Guard passing", youtube_id: "passpass123")
+        create(:note, workspace: workspace, video: v, title: "n1")
+        v.tag_names = [ "passing" ]
+        v.athlete_names = [ "Gordon Ryan" ]
+        v
+      end
+
+      get app_videos_path, headers: inertia_headers
+      card = inertia_props(response)["videos"].find { |c| c["id"] == video.id }
+      expect(card["noteCount"]).to eq(1)
+      expect(card["tags"]).to contain_exactly("passing")
+      expect(card["athletes"]).to contain_exactly("Gordon Ryan")
+      expect(card["poster"]).to include("passpass123")
+    end
+
+    it "exposes the available filter facets" do
+      ActsAsTenant.with_tenant(workspace) do
+        create(:tag, workspace: workspace, name: "leglocks")
+        create(:athlete, workspace: workspace, name: "Lachlan Giles")
+      end
+      get app_videos_path, headers: inertia_headers
+      props = inertia_props(response)
+      expect(props["tags"]).to include("leglocks")
+      expect(props["athletes"]).to include("Lachlan Giles")
+      expect(props["sources"]).to contain_exactly("upload", "youtube")
+    end
+
+    it "filters by tag, athlete, source and title query" do
+      tagged = ActsAsTenant.with_tenant(workspace) do
+        v = create(:video, workspace: workspace, title: "Closed guard")
+        v.tag_names = [ "sweep" ]
+        v
+      end
+      featured = ActsAsTenant.with_tenant(workspace) do
+        v = create(:video, workspace: workspace, title: "Berimbolo")
+        v.athlete_names = [ "Mikey" ]
+        v
+      end
+      ActsAsTenant.with_tenant(workspace) { create(:video, workspace: workspace, title: "Unrelated") }
+
+      get app_videos_path, params: { tag: "sweep" }, headers: inertia_headers
+      expect(inertia_props(response)["videos"].map { |v| v["id"] }).to eq([ tagged.id ])
+
+      get app_videos_path, params: { athlete: "Mikey" }, headers: inertia_headers
+      expect(inertia_props(response)["videos"].map { |v| v["id"] }).to eq([ featured.id ])
+
+      get app_videos_path, params: { q: "berimbolo" }, headers: inertia_headers
+      expect(inertia_props(response)["videos"].map { |v| v["title"] }).to eq([ "Berimbolo" ])
+
+      get app_videos_path, params: { source: "youtube" }, headers: inertia_headers
+      expect(inertia_props(response)["videos"].length).to eq(3)
+    end
+
+    it "filters by added-date range" do
+      old = ActsAsTenant.with_tenant(workspace) { create(:video, workspace: workspace, title: "Old", created_at: 10.days.ago) }
+      recent = ActsAsTenant.with_tenant(workspace) { create(:video, workspace: workspace, title: "New", created_at: 1.day.ago) }
+
+      get app_videos_path, params: { added_from: 3.days.ago.to_date.iso8601 }, headers: inertia_headers
+      ids = inertia_props(response)["videos"].map { |v| v["id"] }
+      expect(ids).to include(recent.id)
+      expect(ids).not_to include(old.id)
+    end
+  end
+
+  describe "PATCH /videos/:id (tags & athletes)" do
+    it "assigns tags and athletes to a video" do
+      video = ActsAsTenant.with_tenant(workspace) { create(:video, workspace: workspace) }
+      patch app_video_path(video), params: { tag_names: [ "highlight" ], athlete_names: [ "Gordon Ryan" ] }
+      expect(video.reload.tag_names).to contain_exactly("highlight")
+      expect(video.athlete_names).to contain_exactly("Gordon Ryan")
+    end
+  end
+
   describe "GET /videos/:id (youtube)" do
     it "returns playback data for the embed" do
       video = ActsAsTenant.with_tenant(workspace) { create(:video, workspace: workspace, youtube_id: "abc12345678") }

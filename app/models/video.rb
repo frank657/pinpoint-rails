@@ -20,6 +20,26 @@ class Video < ApplicationRecord
 
   after_destroy :cleanup_orphaned_vod
 
+  # --- Library filters & search (iteration 0006b) ---
+  scope :search,      ->(q) { where("title ILIKE ?", "%#{sanitize_sql_like(q.to_s)}%") }
+  scope :from_source, ->(s) { where(source: s) }
+  # Wrapped in a subquery (not a bare `joins`) so the outer relation stays join-free — otherwise
+  # a later `includes(:tags)` gets promoted to an eager-load JOIN that breaks on the polymorphic
+  # string taggable_id (varchar = bigint).
+  scope :featuring, ->(name) { where(id: joins(:athletes).where(athletes: { name: name }).select(:id)) }
+  # Videos carry tags polymorphically with a STRING taggable_id, so videos.id (bigint) can't be
+  # SQL-joined against it directly — match via a casted subquery instead (iteration 0006a).
+  scope :with_tag, ->(name) {
+    where(id: Tagging.joins(:tag).where(taggable_type: "Video", tags: { name: name })
+                     .select(Arel.sql("taggable_id::bigint")))
+  }
+  scope :added_between, ->(from, to) {
+    rel = all
+    rel = rel.where("videos.created_at >= ?", from) if from.present?
+    rel = rel.where("videos.created_at <= ?", to) if to.present?
+    rel
+  }
+
   # Whether the video can be played yet.
   def playable?
     youtube? || (vod.present? && (vod.ready? || vod.uploaded?))
@@ -30,6 +50,15 @@ class Video < ApplicationRecord
     return "ready" if youtube?
 
     vod&.status || "uploading"
+  end
+
+  # Replace this video's featured athletes from a list of names (find-or-create, de-duped).
+  def athlete_names=(names)
+    self.athletes = Athlete.for_names(names)
+  end
+
+  def athlete_names
+    athletes.map(&:name)
   end
 
   private
