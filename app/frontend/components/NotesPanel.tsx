@@ -2,6 +2,11 @@ import { useForm, router } from '@inertiajs/react'
 import { useMemo, useState, type FormEvent } from 'react'
 import { formatTime } from '../lib/time'
 
+export interface TaxonomyRef {
+  id: number
+  name: string
+}
+
 export interface Note {
   id: string
   noteType: 'timestamp' | 'rich_text'
@@ -12,6 +17,8 @@ export interface Note {
   categoryId: number | null
   category: string | null
   tags: string[]
+  positions: TaxonomyRef[]
+  techniques: TaxonomyRef[]
 }
 
 interface Category {
@@ -24,6 +31,8 @@ export default function NotesPanel({
   notes,
   categories,
   tags,
+  positions,
+  techniques,
   onSeek,
   getCurrentTime,
 }: {
@@ -31,6 +40,8 @@ export default function NotesPanel({
   notes: Note[]
   categories: Category[]
   tags: string[]
+  positions: TaxonomyRef[]
+  techniques: TaxonomyRef[]
   onSeek: (seconds: number) => void
   getCurrentTime: () => number
 }) {
@@ -49,7 +60,7 @@ export default function NotesPanel({
   return (
     <aside className="flex h-full flex-col rounded-xl border border-neutral-200 bg-white">
       <div className="border-b border-neutral-100 p-4">
-        <NewNoteForm videoId={videoId} categories={categories} tags={tags} getCurrentTime={getCurrentTime} />
+        <NewNoteForm videoId={videoId} categories={categories} tags={tags} positions={positions} techniques={techniques} getCurrentTime={getCurrentTime} />
       </div>
 
       {(categories.length > 0 || tags.length > 0) && (
@@ -101,7 +112,14 @@ export default function NotesPanel({
                       #{t}
                     </button>
                   ))}
+                  {note.positions.map((p) => (
+                    <span key={`p-${p.id}`} className="rounded bg-emerald-50 px-1.5 py-0.5 text-emerald-700">{p.name}</span>
+                  ))}
+                  {note.techniques.map((t) => (
+                    <span key={`t-${t.id}`} className="rounded bg-sky-50 px-1.5 py-0.5 text-sky-700">{t.name}</span>
+                  ))}
                 </div>
+                <NoteTaxonomyEditor note={note} positions={positions} techniques={techniques} />
               </div>
               <button
                 onClick={() => router.delete(`/notes/${note.id}`)}
@@ -121,11 +139,15 @@ function NewNoteForm({
   videoId,
   categories,
   tags,
+  positions,
+  techniques,
   getCurrentTime,
 }: {
   videoId: number
   categories: Category[]
   tags: string[]
+  positions: TaxonomyRef[]
+  techniques: TaxonomyRef[]
   getCurrentTime: () => number
 }) {
   const [open, setOpen] = useState(false)
@@ -139,6 +161,8 @@ function NewNoteForm({
     body: '',
     category_id: '' as string | number,
     tag_names: '',
+    position_ids: [] as number[],
+    technique_ids: [] as number[],
   })
 
   const startCapture = () => {
@@ -217,6 +241,28 @@ function NewNoteForm({
           {tags.map((t) => <option key={t} value={t} />)}
         </datalist>
       </div>
+      {(positions.length > 0 || techniques.length > 0) && (
+        <div className="space-y-1.5">
+          {positions.length > 0 && (
+            <TaxonomyPicker
+              label="position"
+              options={positions}
+              selected={form.data.position_ids}
+              onChange={(ids) => form.setData('position_ids', ids)}
+              chipClassName="bg-emerald-50 text-emerald-700"
+            />
+          )}
+          {techniques.length > 0 && (
+            <TaxonomyPicker
+              label="technique"
+              options={techniques}
+              selected={form.data.technique_ids}
+              onChange={(ids) => form.setData('technique_ids', ids)}
+              chipClassName="bg-sky-50 text-sky-700"
+            />
+          )}
+        </div>
+      )}
       <div className="flex gap-2">
         <button type="submit" disabled={form.processing} className="flex-1 rounded bg-amber-400 px-3 py-1.5 text-sm font-medium text-neutral-950 hover:bg-amber-300 disabled:opacity-50">
           Save note
@@ -226,5 +272,91 @@ function NewNoteForm({
         </button>
       </div>
     </form>
+  )
+}
+
+// Curated-taxonomy chip picker: pick from a fixed list (Positions / Techniques) by id. Selected
+// items render as removable chips; a dropdown adds the rest (ADR 0004 — Axis 2, not free tags).
+function TaxonomyPicker({
+  label,
+  options,
+  selected,
+  onChange,
+  chipClassName,
+}: {
+  label: string
+  options: TaxonomyRef[]
+  selected: number[]
+  onChange: (ids: number[]) => void
+  chipClassName: string
+}) {
+  const chosen = options.filter((o) => selected.includes(o.id))
+  const available = options.filter((o) => !selected.includes(o.id))
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {chosen.map((o) => (
+        <span key={o.id} className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${chipClassName}`}>
+          {o.name}
+          <button type="button" onClick={() => onChange(selected.filter((id) => id !== o.id))} className="opacity-60 hover:opacity-100" aria-label={`Remove ${o.name}`}>
+            ✕
+          </button>
+        </span>
+      ))}
+      {available.length > 0 && (
+        <select
+          value=""
+          onChange={(e) => e.target.value && onChange([...selected, Number(e.target.value)])}
+          className="rounded border border-neutral-300 px-2 py-1 text-xs text-neutral-500"
+        >
+          <option value="">+ {label}</option>
+          {available.map((o) => (
+            <option key={o.id} value={o.id}>{o.name}</option>
+          ))}
+        </select>
+      )}
+    </div>
+  )
+}
+
+// Inline editor that re-tags an EXISTING note's positions/techniques and PATCHes /notes/:id.
+// Hidden behind a toggle so each note row stays compact.
+function NoteTaxonomyEditor({ note, positions, techniques }: { note: Note; positions: TaxonomyRef[]; techniques: TaxonomyRef[] }) {
+  const [open, setOpen] = useState(false)
+  const [positionIds, setPositionIds] = useState(note.positions.map((p) => p.id))
+  const [techniqueIds, setTechniqueIds] = useState(note.techniques.map((t) => t.id))
+
+  if (positions.length === 0 && techniques.length === 0) return null
+
+  const save = () => {
+    router.patch(`/notes/${note.id}`, { position_ids: positionIds, technique_ids: techniqueIds }, {
+      preserveScroll: true,
+      onSuccess: () => setOpen(false),
+    })
+  }
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="mt-1 text-[11px] text-neutral-300 opacity-0 transition group-hover:opacity-100 hover:text-neutral-600"
+      >
+        ＋ positions / techniques
+      </button>
+    )
+  }
+
+  return (
+    <div className="mt-2 space-y-1.5 rounded-lg border border-neutral-200 bg-neutral-50 p-2">
+      {positions.length > 0 && (
+        <TaxonomyPicker label="position" options={positions} selected={positionIds} onChange={setPositionIds} chipClassName="bg-emerald-50 text-emerald-700" />
+      )}
+      {techniques.length > 0 && (
+        <TaxonomyPicker label="technique" options={techniques} selected={techniqueIds} onChange={setTechniqueIds} chipClassName="bg-sky-50 text-sky-700" />
+      )}
+      <div className="flex gap-2">
+        <button onClick={save} className="rounded bg-neutral-900 px-2 py-1 text-[11px] font-medium text-white hover:bg-amber-500">Save</button>
+        <button onClick={() => setOpen(false)} className="rounded px-2 py-1 text-[11px] text-neutral-500 hover:bg-neutral-200">Cancel</button>
+      </div>
+    </div>
   )
 }

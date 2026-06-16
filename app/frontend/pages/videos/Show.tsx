@@ -4,7 +4,7 @@ import axios from 'axios'
 import { PencilSimple, Check, X } from '@phosphor-icons/react'
 import AppShell from '../../components/AppShell'
 import VideoPlayer, { type Playback, type PlayerHandle } from '../../components/VideoPlayer'
-import NotesPanel, { type Note } from '../../components/NotesPanel'
+import NotesPanel, { type Note, type TaxonomyRef } from '../../components/NotesPanel'
 import TokenInput from '../../components/TokenInput'
 import { formatTime } from '../../lib/time'
 
@@ -38,6 +38,8 @@ export default function VideoShow({
   categories,
   tags,
   athletes,
+  positions,
+  techniques,
 }: {
   video: VideoDetail
   playback: Playback
@@ -47,6 +49,8 @@ export default function VideoShow({
   categories: Category[]
   tags: string[]
   athletes: string[]
+  positions: TaxonomyRef[]
+  techniques: TaxonomyRef[]
 }) {
   const player = useRef<PlayerHandle>(null)
   const seek = (s: number) => player.current?.seek(s)
@@ -96,6 +100,8 @@ export default function VideoShow({
             notes={notes}
             categories={categories}
             tags={tags}
+            positions={positions}
+            techniques={techniques}
             onSeek={seek}
             getCurrentTime={getCurrentTime}
           />
