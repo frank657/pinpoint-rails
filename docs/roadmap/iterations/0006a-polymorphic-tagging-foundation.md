@@ -1,6 +1,6 @@
 # Iteration 0006a — Polymorphic tagging foundation
 
-> **Status:** 🛠️ in progress · **Owner:** Frank · **Started:** 2026-06-15 · **Shipped:** —
+> **Status:** ✅ shipped · **Owner:** Frank · **Started:** 2026-06-15 · **Shipped:** 2026-06-15
 > Parent epic: `0006-tagging-library-and-taxonomy-ui.md` (§C, first sub-iteration).
 > Links: ADR 0004 (Tag is Axis-2 taxonomy) · this is the hard prerequisite for the video-tag
 > parts of 0006b and the Library tag filter.

@@ -1,6 +1,6 @@
 # Iteration 0006 — Polymorphic tagging, Library v2, taxonomy & segment UI, athletes (epic)
 
-> **Status:** 📋 planned · **Owner:** Frank · **Started:** — · **Shipped:** —
+> **Status:** ✅ shipped (0006a–f) · **Owner:** Frank · **Started:** 2026-06-15 · **Shipped:** 2026-06-16
 > Links: ADR 0004 (tags/positions/athletes are Axis-2 taxonomy) · builds on iteration 0005
 > (Athlete model) · Mockup: none (owner opted out)
 >
@@ -137,17 +137,20 @@ High level; each sub-iteration spells out its own:
 
 ## Exit criteria (epic-level; each sub-iteration carries its own slice + the gate)
 
-- [ ] Research/UX direction written and agreed; data-model design (§B) decided and recorded.
-- [ ] Polymorphic tags: a `Tag` applies to both Notes and Videos; existing note tags migrated
+- [x] Research/UX direction written and agreed; data-model design (§B) decided and recorded
+      (option (i), string `taggable_id` — recorded in `0006a`).
+- [x] Polymorphic tags: a `Tag` applies to both Notes and Videos; existing note tags migrated
       with no loss; tag management page (create/rename/merge/delete).
-- [ ] Library v2: rich cards + filters (added-date range, tag, athlete, source) + search, all
+- [x] Library v2: rich cards + filters (added-date range, tag, athlete, source) + search, all
       server-side and tenant-scoped.
-- [ ] Notes can be tagged with positions/techniques from the UI; segments are add/edit/delete
+- [x] Notes can be tagged with positions/techniques from the UI; segments are add/edit/delete
       from the video page; categories are manageable.
-- [ ] Athletes: assignable to a video, Athletes nav entry, athlete show page with their videos.
-- [ ] Global ⌘K search returns videos (title/tag/athlete) as well as notes.
-- [ ] Per sub-iteration: `bundle exec rspec` green, `npm run check` clean, `bin/vite build` ok,
-      `bundle exec rubocop` clean.
+- [x] Athletes: assignable to a video, Athletes nav entry, athlete show page with their videos.
+- [x] Global ⌘K search returns videos (title/tag/athlete) as well as notes.
+- [x] Per sub-iteration: `bundle exec rspec` green (136 examples), `npm run check` clean,
+      `bin/vite build` ok, `bundle exec rubocop` clean (180 files).
+- [ ] System (Capybara) specs — deferred: the browser-driver harness isn't available in the
+      build environment; the Inertia/React seams are covered by request specs + `tsc`/`vite build`.
 
 ## What shipped
 
@@ -156,6 +159,21 @@ High level; each sub-iteration spells out its own:
   `Note`/`Video`; reversible `note_tags` → `taggings` migration; `Tag#merge_into!`/`usage_count`;
   Tag management page (create/rename/merge/delete) + **Tags** sidebar entry; `video_json` carries
   tags. Existing note-tag UI + filter preserved.
+- **0006b — Library v2:** `Video` scopes (`search`, `from_source`, `featuring`, `with_tag`,
+  `added_between`); enriched `videos#index` (poster, note count, athletes, tags, date, duration)
+  with server-side tag/athlete/source/date/title filters; new card-grid Library + filter bar;
+  `videos#update` assigns tags & athletes.
+- **0006c — Athletes UI:** `AthletesController` (index + show + create) + `AthletePolicy`;
+  **Athletes** sidebar entry; `athletes/Index` and `athletes/Show` (videos featuring them);
+  reusable `TokenInput`; inline tag/athlete editor on the video page.
+- **0006d — Note position/technique tagging UI:** `note_json` carries positions/techniques;
+  `TaxonomyPicker` in the new-note form + per-note `NoteTaxonomyEditor` (PATCH) so the graph is
+  populatable from the UI.
+- **0006e — Segment add/edit/delete UI:** `SegmentsEditor` on the video page over the existing
+  CRUD (add at current time, rename/retime, delete, seek).
+- **0006f — Category management + search-over-videos:** `Category#usage_count`/`merge_into!`;
+  category management page (create/rename/merge/delete) + **Categories** sidebar entry; ⌘K
+  spotlight + full search page now return videos (title/tag/athlete) alongside notes.
 
 ## Out of scope (→ later)
 
