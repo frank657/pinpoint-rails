@@ -1,7 +1,7 @@
 module App
   class VideosController < BaseController
     def index
-      videos = filtered_videos.includes(:tags, :athletes, :notes)
+      videos = filtered_videos.includes(:tags, :athletes, :notes, vod: { cover_image_attachment: :blob })
       render inertia: "videos/Index", props: {
         videos: videos.map { |v| video_json(v) },
         tags: Tag.order(:name).pluck(:name),

@@ -80,4 +80,8 @@ Rails.application.configure do
   # app / admin hosts work locally — see docs/decisions/0006.
   config.hosts << "lvh.me"
   config.hosts << /.*\.lvh\.me/
+
+  # Tunnelled backend host (cloudflared) so Aliyun VOD callbacks reach the dev server —
+  # matches credentials host.backend.development (AppConfig#host_backend).
+  config.hosts << "api.version0.me"
 end

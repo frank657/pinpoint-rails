@@ -6,10 +6,6 @@ devise_for :users, controllers: {
   passwords: "auth/passwords"
 }
 
-# Aliyun VOD webhook (signature-verified, no auth/CSRF). Aliyun posts to the app host
-# (AppConfig.host_backend) — see app/lib/ali_vod/config.rb.
-post "webhooks/aliyun/vod", to: "webhooks/aliyun/vod#verify"
-
 # Controllers live under app/controllers/app/ (module: :app keeps URLs unprefixed).
 scope module: :app, as: :app do
   get "/", to: "dashboard#index", as: :root

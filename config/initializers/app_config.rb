@@ -25,8 +25,14 @@ module AppConfig
     def host_app     = build_host("app")
     def host_admin   = build_host("admin")
 
-    # Backend URL used for outbound webhook callbacks (Aliyun VOD, Phase 2).
-    def host_backend = ENV["APP_BACKEND_URL"].presence || host_app
+    # Backend URL used for outbound webhook callbacks (Aliyun VOD, Phase 2). Read from
+    # credentials (host.backend.<env>) so the callback can reach a tunnelled dev host
+    # (e.g. cloudflared) — falling back to an env override, then the app host.
+    def host_backend
+      ENV["APP_BACKEND_URL"].presence ||
+        credentials.dig(:host, :backend, env) ||
+        host_app
+    end
 
     private
 

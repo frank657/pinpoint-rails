@@ -68,13 +68,17 @@ function VideoCardItem({ video }: { video: VideoCard }) {
   const added = new Date(video.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
   return (
     <li className="overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:border-amber-300 hover:shadow-sm">
-      <Link href={`/videos/${video.id}`} className="block">
+      <Link href={`/videos/${video.id}`} className="group block">
         <div className="relative aspect-video bg-gradient-to-br from-neutral-800 via-neutral-700 to-neutral-900">
           {video.poster ? (
             <img src={video.poster} alt="" className="h-full w-full object-cover" loading="lazy" />
           ) : (
-            <div className="flex h-full items-center justify-center text-xs font-medium uppercase tracking-widest text-neutral-300">
-              {video.source}
+            <div className="flex h-full items-center justify-center text-xs font-medium tracking-wide text-neutral-300">
+              {video.status === 'uploading'
+                ? 'Uploading…'
+                : video.status === 'uploaded'
+                  ? 'Processing…'
+                  : video.source.toUpperCase()}
             </div>
           )}
           {video.durationSeconds != null && (
@@ -82,32 +86,27 @@ function VideoCardItem({ video }: { video: VideoCard }) {
               {formatTime(video.durationSeconds)}
             </span>
           )}
-          {video.status !== 'ready' && (
-            <span className="absolute left-1.5 top-1.5 rounded bg-amber-400 px-1.5 py-0.5 text-[11px] font-medium text-neutral-950">
-              {video.status}
-            </span>
+        </div>
+        <div className="p-3">
+          <span className="line-clamp-2 font-medium leading-snug group-hover:text-amber-600">
+            {video.title}
+          </span>
+          <div className="mt-1 text-xs text-neutral-400">
+            {added}
+            {video.noteCount > 0 && ` · ${video.noteCount} ${video.noteCount === 1 ? 'note' : 'notes'}`}
+          </div>
+          {(video.athletes.length > 0 || video.tags.length > 0) && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {video.athletes.map((a) => (
+                <span key={a} className="rounded-full bg-teal/10 px-2 py-0.5 text-[11px] font-medium text-teal">{a}</span>
+              ))}
+              {video.tags.map((t) => (
+                <span key={t} className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700">#{t}</span>
+              ))}
+            </div>
           )}
         </div>
       </Link>
-      <div className="p-3">
-        <Link href={`/videos/${video.id}`} className="line-clamp-2 font-medium leading-snug hover:text-amber-600">
-          {video.title}
-        </Link>
-        <div className="mt-1 text-xs text-neutral-400">
-          {added}
-          {video.noteCount > 0 && ` · ${video.noteCount} ${video.noteCount === 1 ? 'note' : 'notes'}`}
-        </div>
-        {(video.athletes.length > 0 || video.tags.length > 0) && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {video.athletes.map((a) => (
-              <span key={a} className="rounded-full bg-teal/10 px-2 py-0.5 text-[11px] font-medium text-teal">{a}</span>
-            ))}
-            {video.tags.map((t) => (
-              <span key={t} className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700">#{t}</span>
-            ))}
-          </div>
-        )}
-      </div>
     </li>
   )
 }

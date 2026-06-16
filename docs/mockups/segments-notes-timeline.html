@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pinpoint · Segments + Notes timeline (exploration)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#f4eee4; --surface:#fffdf8; --raise:#f0e6d6;
+    --ink:#2c2722; --muted:#6e645a; --faint:#9b8f7f; --line:rgba(44,32,20,.12);
+    --ember:#e2571f; --gold:#bf8a2c; --teal:#3a9384;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:"Hanken Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1040px;margin:0 auto;padding:40px 28px 80px}
+  h1{font-family:"Fraunces";font-weight:500;font-size:34px;letter-spacing:-.01em;margin:0 0 6px}
+  .lede{color:var(--muted);font-size:15.5px;line-height:1.55;max-width:760px;margin:0 0 8px}
+  .ey{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ember);font-weight:700}
+  h2{font-family:"Fraunces";font-weight:500;font-size:22px;margin:38px 0 4px}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 16px;max-width:760px;line-height:1.5}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px 22px;box-shadow:0 1px 0 rgba(44,32,20,.03)}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--muted);margin:14px 0 0}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+
+  /* ---------- shared timeline ---------- */
+  .ruler{position:relative;height:18px;margin:0 0 2px}
+  .ruler .tick{position:absolute;transform:translateX(-50%);font-size:11px;color:var(--faint)}
+  .lane{position:relative;border-radius:10px}
+  .lane-label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);font-weight:600;margin:0 0 6px}
+
+  /* segments lane */
+  .seglane{height:46px;background:var(--raise);border-radius:10px;position:relative;overflow:hidden}
+  .seg{position:absolute;top:0;bottom:0;background:rgba(226,87,31,.14);border:1px solid rgba(226,87,31,.45);border-radius:8px;display:flex;align-items:center;padding:0 10px;cursor:pointer;transition:.15s}
+  .seg:hover{background:rgba(226,87,31,.22)}
+  .seg .nm{font-size:12.5px;font-weight:600;color:#b2410f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .seg .tm{font-size:10.5px;color:var(--gold);margin-left:8px}
+
+  /* notes lane */
+  .notelane{height:54px;position:relative;margin-top:8px}
+  .notelane .axis{position:absolute;left:0;right:0;top:26px;height:2px;background:var(--line)}
+  .pin{position:absolute;top:18px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;cursor:pointer;z-index:2}
+  .pin .dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+  .pin.point .dot{background:var(--teal)}
+  .pin .tip{position:absolute;bottom:20px;white-space:nowrap;background:var(--ink);color:#fff;font-size:11px;padding:3px 7px;border-radius:6px;opacity:0;transition:.15s;pointer-events:none}
+  .pin:hover .tip{opacity:1}
+  .rangebar{position:absolute;top:23px;height:8px;background:var(--gold);border-radius:5px;opacity:.85;cursor:pointer}
+  .rangebar:hover{opacity:1}
+  .rangebar .rtip{position:absolute;bottom:14px;left:0;white-space:nowrap;background:var(--ink);color:#fff;font-size:11px;padding:3px 7px;border-radius:6px;opacity:0;transition:.15s}
+  .rangebar:hover .rtip{opacity:1}
+
+  /* ---------- grouped outline ---------- */
+  .group{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:12px}
+  .ghead{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--raise)}
+  .ghead.loose{background:transparent;border-bottom:1px dashed var(--line)}
+  .ghead .chip{font-family:ui-monospace,monospace;font-size:11px;background:rgba(226,87,31,.12);color:#b2410f;border:1px solid rgba(226,87,31,.3);padding:2px 7px;border-radius:6px}
+  .ghead .gnm{font-weight:600;font-size:14px}
+  .ghead .cnt{margin-left:auto;font-size:12px;color:var(--faint)}
+  .note{display:flex;gap:10px;padding:11px 14px 11px 16px;border-top:1px solid var(--line);position:relative}
+  .note:first-child{border-top:0}
+  .note .rail{position:absolute;left:0;top:0;bottom:0;width:3px}
+  .note.point .rail{background:var(--teal)}
+  .note.range .rail{background:var(--gold)}
+  .note .ts{font-family:ui-monospace,monospace;font-size:11px;color:#fff;background:var(--ink);padding:2px 6px;border-radius:5px;height:fit-content;white-space:nowrap}
+  .note .body .t{font-weight:600;font-size:13.5px}
+  .note .body .d{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+  .tags span{font-size:11px;background:rgba(58,147,132,.12);color:#2c7568;padding:2px 8px;border-radius:999px}
+  .indent{padding-left:14px;border-left:2px solid rgba(226,87,31,.25);margin-left:14px}
+
+  .note-pill{display:inline-flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+  .why{font-size:13px;color:var(--muted);background:rgba(44,32,20,.035);border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-top:14px;line-height:1.5}
+  .why b{color:var(--ink)}
+  .rec{border-color:rgba(226,87,31,.4)}
+  .recflag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--ember);padding:2px 8px;border-radius:6px;margin-left:8px;vertical-align:2px}
+  .playerstub{aspect-ratio:16/9;width:100%;background:linear-gradient(135deg,#3a332b,#241f19);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#8a8074;font-size:13px;margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="ey">Pinpoint · UX exploration</div>
+  <h1>Showing segments &amp; notes together</h1>
+  <p class="lede">Segments are labelled <b>time-ranges</b> (chapters); notes are <b>points</b> or <b>ranges</b> that fall inside — or between — them. Three ways to make that relationship visible. Real data from <i>Screen Recording 2026-06-04</i> (1:02): segment <b>Test segment</b> 0:36–0:44; notes at <b>0:00</b>, <b>0:27–0:39</b>, <b>0:36</b>.</p>
+  <div class="legend">
+    <span><i style="background:rgba(226,87,31,.45)"></i>Segment (range)</span>
+    <span><i style="background:var(--teal)"></i>Point note</span>
+    <span><i style="background:var(--gold)"></i>Range note</span>
+  </div>
+
+  <!-- ============ APPROACH 1: TIMELINE TRACK ============ -->
+  <h2>1 · Timeline track (under the player)</h2>
+  <p class="sub">A shared time axis beneath the scrubber. Segments are bands; notes are pins (points) and bars (ranges) on a second lane. You instantly see which notes sit inside a segment — and which don't (the 0:00 intro note lives before any segment).</p>
+  <div class="card">
+    <div class="lane-label">0:00 — 1:02</div>
+    <div class="ruler">
+      <span class="tick" style="left:0%">0:00</span>
+      <span class="tick" style="left:24.2%">0:15</span>
+      <span class="tick" style="left:48.4%">0:30</span>
+      <span class="tick" style="left:72.6%">0:45</span>
+      <span class="tick" style="left:96.8%">1:00</span>
+    </div>
+    <div class="seglane">
+      <div class="seg" style="left:58.06%;width:12.9%">
+        <span class="nm">Test segment</span><span class="tm">0:36–0:44</span>
+      </div>
+    </div>
+    <div class="notelane">
+      <div class="axis"></div>
+      <div class="pin point" style="left:0%"><span class="tip">0:00 · intro</span><span class="dot"></span></div>
+      <div class="rangebar" style="left:43.55%;width:19.35%"><span class="rtip">0:27–0:39 · How to get the underhook</span></div>
+      <div class="pin point" style="left:58.06%"><span class="tip">0:36 · test note</span><span class="dot"></span></div>
+    </div>
+    <div class="why"><b>Best for:</b> the at-a-glance overview right where the scrubber is. Hover a pin to preview, click to seek. Density gets tricky with many notes close together (cluster them into a “+3” bubble). Pairs well with Approach 2 below for reading.</div>
+  </div>
+
+  <!-- ============ APPROACH 2: GROUPED OUTLINE ============ -->
+  <h2>2 · Grouped outline (the side panel, reorganised)</h2>
+  <p class="sub">Notes nest under the segment whose timeframe contains them; notes outside every segment collect in “Loose notes”. This is the clearest way to read “these notes belong to this chapter”.</p>
+  <div class="card">
+    <div class="group">
+      <div class="ghead">
+        <span class="chip">0:36–0:44</span><span class="gnm">Test segment</span><span class="cnt">1 note</span>
+      </div>
+      <div class="indent">
+        <div class="note point">
+          <span class="rail"></span><span class="ts">0:36</span>
+          <div class="body"><div class="t">test note</div>
+            <div class="tags"><span>Ashi Garami</span><span>Half Guard</span><span>50/50</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="ghead loose">
+        <span class="gnm" style="color:var(--muted)">Loose notes</span><span class="cnt">outside any segment · 2</span>
+      </div>
+      <div class="note point">
+        <span class="rail"></span><span class="ts">0:00</span>
+        <div class="body"><div class="t">intro</div></div>
+      </div>
+      <div class="note range">
+        <span class="rail"></span><span class="ts">0:27–0:39</span>
+        <div class="body"><div class="t">How to get the underhook</div><div class="d">Pay attention to the details</div></div>
+      </div>
+    </div>
+    <div class="why"><b>Best for:</b> reading &amp; study. A note that straddles a segment edge (0:27–0:39 spills into the 0:36 segment) is shown by its start — or you can surface it in both with a faint “continues…” marker. “+ Add note” can live inside each segment header so new notes inherit the chapter.</div>
+  </div>
+
+  <!-- ============ APPROACH 3: COMBINED (RECOMMENDED) ============ -->
+  <h2>3 · Combined: track + synced list <span class="recflag">recommended</span></h2>
+  <p class="sub">The timeline track gives the spatial overview; the grouped list below it gives the detail. They’re synced — hover/seek in one highlights the other. This is the Snipd/Recall pattern adapted to your chapters.</p>
+  <div class="card rec">
+    <div class="playerstub">▶  player</div>
+    <div class="ruler">
+      <span class="tick" style="left:0%">0:00</span>
+      <span class="tick" style="left:24.2%">0:15</span>
+      <span class="tick" style="left:48.4%">0:30</span>
+      <span class="tick" style="left:72.6%">0:45</span>
+      <span class="tick" style="left:96.8%">1:00</span>
+    </div>
+    <div class="seglane">
+      <div class="seg" style="left:58.06%;width:12.9%"><span class="nm">Test segment</span></div>
+    </div>
+    <div class="notelane">
+      <div class="axis"></div>
+      <div class="pin point" style="left:0%"><span class="tip">0:00 · intro</span><span class="dot"></span></div>
+      <div class="rangebar" style="left:43.55%;width:19.35%"><span class="rtip">0:27–0:39</span></div>
+      <div class="pin point" style="left:58.06%"><span class="tip">0:36 · test note</span><span class="dot"></span></div>
+    </div>
+
+    <div style="margin-top:20px">
+      <div class="group">
+        <div class="ghead">
+          <span class="chip">0:36–0:44</span><span class="gnm">Test segment</span><span class="cnt">1 note</span>
+        </div>
+        <div class="indent">
+          <div class="note point">
+            <span class="rail"></span><span class="ts">0:36</span>
+            <div class="body"><div class="t">test note</div>
+              <div class="tags"><span>Ashi Garami</span><span>Half Guard</span><span>50/50</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="group">
+        <div class="ghead loose"><span class="gnm" style="color:var(--muted)">Loose notes</span><span class="cnt">2</span></div>
+        <div class="note point"><span class="rail"></span><span class="ts">0:00</span><div class="body"><div class="t">intro</div></div></div>
+        <div class="note range"><span class="rail"></span><span class="ts">0:27–0:39</span><div class="body"><div class="t">How to get the underhook</div><div class="d">Pay attention to the details</div></div></div>
+      </div>
+    </div>
+    <div class="why"><b>Why this one:</b> overview + detail without forcing a choice; the track answers “where” and the list answers “what”. Scales: when notes get dense the track clusters, the list stays readable. It also makes the segment↔note containment a real, shared model you can compute server-side (a note is “in” a segment when its start falls in the segment’s range).</div>
+  </div>
+
+  <p class="why" style="margin-top:28px"><b>Note on the data model:</b> containment is derived, not stored — a note belongs to a segment when <span class="mono">segment.start ≤ note.start &lt; segment.end</span>. Range notes that cross a boundary attach by their start (optionally shown as continuing). No schema change needed; it’s a grouping in the controller props.</p>
+</div>
+</body>
+</html>

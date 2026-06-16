@@ -36,9 +36,12 @@ class Vod < ApplicationRecord
     upload_expires_at.present? && upload_expires_at <= Time.current
   end
 
-  # After transcode, pull the generated cover from the provider into Active Storage.
+  # After transcode, pull the generated cover from the provider into Active Storage. The
+  # provider cover_url is a short-lived signed URL, so we download a stable copy. Idempotent:
+  # safe to call again from a repeat callback or the backfill task.
   def attach_cover_image_from_provider
     return unless aliyun?
+    return if cover_image.attached?
 
     url = aliyun_video&.cover_url
     FileService.attach_url(cover_image, url) if url.present?

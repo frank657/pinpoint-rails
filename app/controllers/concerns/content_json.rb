@@ -35,11 +35,16 @@ module ContentJson
     }
   end
 
-  # YouTube thumbnails come free from the video id; uploads fall back to a placeholder in the UI.
+  # Poster for a video card / show header. YouTube: the standard thumbnail (free from the id).
+  # Uploads: the Vod cover snapshot once it has been pulled into Active Storage
+  # (Vod#attach_cover_image_from_provider). The raw Aliyun cover_url is a short-lived signed URL,
+  # so we serve the stable AS blob URL; the UI shows a placeholder until it's attached.
   def video_poster(video)
-    return unless video.youtube? && video.youtube_id.present?
-
-    "https://i.ytimg.com/vi/#{video.youtube_id}/hqdefault.jpg"
+    if video.youtube? && video.youtube_id.present?
+      "https://i.ytimg.com/vi/#{video.youtube_id}/hqdefault.jpg"
+    elsif video.vod&.cover_image&.attached?
+      rails_blob_path(video.vod.cover_image)
+    end
   end
 
   def segment_json(segment)
