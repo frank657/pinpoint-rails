@@ -79,6 +79,14 @@ Rails.application.configure do
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
 
+  # Subdomain routing (docs/decisions/0006): the subdomain Rails extracts from the Host depends
+  # on tld_length, which must match the base domain's label count so `app.`/`admin.` resolve.
+  # Derived from APP_DOMAIN — e.g. pinpoint.brainchild.cloud (3 labels) ⇒ tld_length 2; a
+  # 2-label base like pinpoint.com ⇒ 1. Falls back to Rails' default (1) when APP_DOMAIN is unset.
+  if ENV["APP_DOMAIN"].present?
+    config.action_dispatch.tld_length = ENV["APP_DOMAIN"].split(":").first.to_s.count(".").clamp(1, 5)
+  end
+
   # Enable DNS rebinding protection and other `Host` header attacks.
   # config.hosts = [
   #   "example.com",     # Allow requests from example.com

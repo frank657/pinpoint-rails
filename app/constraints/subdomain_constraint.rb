@@ -3,8 +3,11 @@
 #   admin.<domain> → the admin panel
 #   apex / www     → marketing & landing
 #
-# Works in development via *.lvh.me (which resolves to 127.0.0.1) and in production via
-# the real domain — both use Rails' default tld_length of 1.
+# Works in development via *.lvh.me (resolves to 127.0.0.1) and in production via the real
+# domain. The subdomain Rails extracts depends on `config.action_dispatch.tld_length`, which
+# must match the base domain's label count: lvh.me / pinpoint.com (2 labels) ⇒ 1, while
+# pinpoint.brainchild.cloud (3 labels) ⇒ 2. Production derives it from APP_DOMAIN — see
+# config/environments/production.rb.
 class SubdomainConstraint
   def self.app   = new("app")
   def self.admin = new("admin")
