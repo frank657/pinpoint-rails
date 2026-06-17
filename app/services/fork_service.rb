@@ -21,6 +21,7 @@ class ForkService
     @forked_by = forked_by
     @include_notes = include_notes
     @video_map = {}
+    @segment_map = {}
   end
 
   def call
@@ -50,8 +51,9 @@ class ForkService
         youtube_id: video.youtube_id, vod: video.vod, uploaded_by: @forked_by
       )
       if @include_notes
-        read { Note.for_video(video).to_a }.each { |n| copy_note(n, new_video) }
+        # Segments first so notes can relink to their copied segment (ADR 0011 #20).
         read { Video::Segment.for_video(video).to_a }.each { |s| copy_segment(s, new_video) }
+        read { Note.for_video(video).to_a }.each { |n| copy_note(n, new_video) }
       end
       new_video
     end
@@ -67,12 +69,18 @@ class ForkService
     )
     new_note.body = note.body.to_s if note.body.body.present?
     new_note.save!
+    # Preserve the source's exact segment placement (pinned or orphan), overriding any
+    # auto-adoption the create callback ran. update_column avoids re-firing callbacks.
+    new_note.update_column(:segment_id, note.segment_id && @segment_map[note.segment_id]&.id)
     new_note
   end
 
   def copy_segment(segment, video)
-    Video::Segment.create!(video: video, title: segment.title, start_seconds: segment.start_seconds,
-                           end_seconds: segment.end_seconds, position: segment.position)
+    new_segment = Video::Segment.create!(
+      video: video, title: segment.title, start_seconds: segment.start_seconds,
+      end_seconds: segment.end_seconds, position: segment.position
+    )
+    @segment_map[segment.id] = new_segment
   end
 
   def record_attribution(target)

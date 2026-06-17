@@ -3,7 +3,7 @@ module App
     def index
       notes = filtered_notes
       render inertia: "notes/Index", props: {
-        notes: notes.includes(:category, :tags, :positions, :techniques, :rich_text_body).map { |n| note_json(n) },
+        notes: notes.includes(:categories, :tags, :positions, :techniques, :rich_text_body).map { |n| note_json(n) },
         categories: Category.order(:name).map { |c| { id: c.id, name: c.name } },
         tags: Tag.order(:name).pluck(:name),
         filters: { categoryId: params[:category_id], tag: params[:tag], q: params[:q] }
@@ -46,7 +46,7 @@ module App
 
     def filtered_notes
       notes = Note.all
-      notes = notes.where(category_id: params[:category_id]) if params[:category_id].present?
+      notes = notes.joins(:categories).where(categories: { id: params[:category_id] }) if params[:category_id].present?
       notes = notes.where("notes.id::text IN (?)", note_ids_for_tag(params[:tag])) if params[:tag].present?
       notes = notes.search(params[:q]) if params[:q].present?
       notes.order(created_at: :desc)
@@ -67,12 +67,14 @@ module App
     end
 
     def note_attrs
-      params.permit(:note_type, :video_id, :category_id, :title, :start_seconds, :end_seconds, :body)
+      params.permit(:note_type, :video_id, :segment_id, :title, :start_seconds, :end_seconds, :body)
     end
 
-    # Curated taxonomy (Phase 10) — separate from free tags.
+    # Curated taxonomy (Phase 10) — separate from free tags. Categories, positions and
+    # techniques are all multi-valued (ADR 0011 Phase E).
     def assign_taxonomy(note)
-      note.positions = Position.where(id: params[:position_ids]) if params.key?(:position_ids)
+      note.categories = Category.where(id: params[:category_ids]) if params.key?(:category_ids)
+      note.positions  = Position.where(id: params[:position_ids]) if params.key?(:position_ids)
       note.techniques = Technique.where(id: params[:technique_ids]) if params.key?(:technique_ids)
     end
 

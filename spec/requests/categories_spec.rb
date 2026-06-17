@@ -13,7 +13,7 @@ RSpec.describe "Categories management", type: :request do
   describe "GET /categories" do
     it "renders the management page with names and note counts" do
       sweeps = create(:category, workspace: workspace, name: "Sweeps")
-      create(:note, workspace: workspace, category: sweeps)
+      create(:note, workspace: workspace, categories: [ sweeps ])
       create(:category, workspace: workspace, name: "Passes")
 
       get app_categories_path, headers: inertia_headers
@@ -32,11 +32,12 @@ RSpec.describe "Categories management", type: :request do
       expect { delete app_category_path(cat) }.to change(Category, :count).by(-1)
     end
 
-    it "nullifies note category on delete (does not destroy notes)" do
+    it "removes the category from notes on delete (does not destroy notes)" do
       cat = create(:category, workspace: workspace, name: "Doomed")
-      note = create(:note, workspace: workspace, category: cat)
+      note = create(:note, workspace: workspace, categories: [ cat ])
       delete app_category_path(cat)
-      expect(note.reload.category_id).to be_nil
+      expect(Note.exists?(note.id)).to be(true)
+      expect(note.reload.categories).to be_empty
     end
   end
 
@@ -44,12 +45,12 @@ RSpec.describe "Categories management", type: :request do
     it "re-files notes onto the target and deletes the source" do
       source = create(:category, workspace: workspace, name: "BJJ")
       target = create(:category, workspace: workspace, name: "Jiu-jitsu")
-      note = create(:note, workspace: workspace, category: source)
+      note = create(:note, workspace: workspace, categories: [ source ])
 
       post merge_app_category_path(source), params: { target_id: target.id }
 
       expect(Category.exists?(source.id)).to be(false)
-      expect(note.reload.category_id).to eq(target.id)
+      expect(note.reload.categories).to contain_exactly(target)
     end
   end
 end

@@ -2,7 +2,7 @@
 class Category < ApplicationRecord
   acts_as_tenant :workspace
 
-  has_many :notes, dependent: :nullify
+  has_and_belongs_to_many :notes, join_table: :note_categories
 
   validates :name, presence: true, uniqueness: { scope: :workspace_id, case_sensitive: false }
 
@@ -14,7 +14,7 @@ class Category < ApplicationRecord
     return self if target == self
 
     transaction do
-      notes.update_all(category_id: target.id)
+      notes.find_each { |note| note.categories = (note.categories - [ self ] + [ target ]).uniq }
       destroy!
     end
     target

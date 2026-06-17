@@ -9,7 +9,7 @@ interface NoteRow {
   title: string | null
   body: string
   startSeconds: number | null
-  category: string | null
+  categories: { id: number; name: string }[]
   tags: string[]
 }
 interface Category { id: number; name: string }
@@ -100,7 +100,7 @@ export default function NotesIndex({ notes, categories, filters }: Props) {
                       <span className="rounded-md bg-gold/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-gold">note</span>
                     )}
                     {n.title && <span className="font-medium text-neutral-900">{n.title}</span>}
-                    {n.category && <span className="ml-auto text-xs text-neutral-400">{n.category}</span>}
+                    {n.categories.length > 0 && <span className="ml-auto text-xs text-neutral-400">{n.categories.map((c) => c.name).join(', ')}</span>}
                   </div>
                   {n.body && excerpt(n.body) && (
                     <p className="mt-2 line-clamp-2 text-sm text-neutral-600">{excerpt(n.body)}</p>

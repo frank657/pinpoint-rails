@@ -43,14 +43,15 @@ parents).
 
 ### How to write a nested model
 
-The parent (`Video`, `Workspace`) is itself a table, so you must set `self.table_name`
-explicitly. **Do not** use `table_name_prefix` — it also rewrites the parent's own table.
+A nested model's table is its **full underscored name** (`video_segments`, `workspace_memberships`)
+— not the demodulized one. Set `self.table_name` explicitly (the parent is itself a table, and
+**do not** use `table_name_prefix` — it also rewrites the parent's own table).
 
 ```ruby
 # app/models/video/segment.rb
 class Video::Segment < ApplicationRecord
-  self.table_name = "segments"   # Rails derives the demodulized name; set it explicitly so a
-                                 # future Video.table_name_prefix can't silently rewrite it.
+  self.table_name = "video_segments"   # full underscored name; matches Workspace::Membership →
+                                       # workspace_memberships. Set explicitly (ADR 0011).
   acts_as_tenant :workspace
   belongs_to :video
 end
@@ -64,8 +65,7 @@ Things that follow from the namespace — get all of them:
 - **Policy** follows the model: `Video::SegmentPolicy` in `app/policies/video/segment_policy.rb`
   (Action Policy resolves `record.class` → `"#{class}Policy"`).
 - **Factory** must name the class: `factory :segment, class: "Video::Segment" do … end`.
-- **Table name**: keep the existing table (`segments`) unless you're creating a new one. For a
-  brand-new nested table, name it for the relationship (`workspace_memberships`) and still set
+- **Table name**: the full underscored name (`video_segments`, `workspace_memberships`), set via
   `self.table_name` explicitly.
 
 ## 3. Tenancy (ADR 0002)
@@ -99,10 +99,12 @@ Grounded in the existing models — match them.
 - **Reversible drops.** When removing a feature, write `up`/`down` so `down` recreates the table
   exactly as the original `create_*` migration did — see `DropReviewCards`, `DropTranscriptLines`.
   This keeps the migration reversible and documents what was removed.
-- **Foreign keys + indexes:** add `t.references :video, foreign_key: true` and an index on any
-  column you'll filter/sort by (`add_index :segments, %i[video_id start_seconds]`).
-- **UUID vs bigint:** `Note` uses a UUID primary key (rich-text/sharing); most tables use bigint.
-  Match the parent's key type when adding a FK (`t.references :note, type: :uuid`).
+- **UUID primary keys are the default** (iteration 0008). New tables: `create_table :x, id: :uuid`;
+  references: `t.references :y, type: :uuid, foreign_key: true`. The generator default is set in
+  `config/initializers/generators.rb`. (Some legacy tables are still bigint pending the 0008
+  conversion — when adding a FK to one, match its current key type.)
+- **Foreign keys + indexes:** add the reference + an index on any column you'll filter/sort by
+  (`add_index :video_segments, %i[video_id start_seconds]`).
 - **Numeric seconds** are `t.float`, with `null: false` on the required bound.
 - After migrating, both dev and test must be updated: `bin/rails db:migrate` then
   `bin/rails db:test:prepare`. `db/schema.rb` is the source of truth — commit it with the migration.

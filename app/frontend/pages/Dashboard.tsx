@@ -9,7 +9,7 @@ interface NoteRow {
   videoId: number | null
   title: string | null
   startSeconds: number | null
-  category: string | null
+  categories: { id: number; name: string }[]
   tags: string[]
 }
 
@@ -83,7 +83,7 @@ export default function Dashboard({
                     <span className="flex-none rounded bg-gold/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-gold">note</span>
                   )}
                   <span className="truncate text-sm text-neutral-700">{n.title ?? 'Untitled note'}</span>
-                  {n.category && <span className="ml-auto flex-none text-xs text-neutral-400">{n.category}</span>}
+                  {n.categories.length > 0 && <span className="ml-auto flex-none text-xs text-neutral-400">{n.categories.map((c) => c.name).join(', ')}</span>}
                 </Link>
               </li>
             ))}

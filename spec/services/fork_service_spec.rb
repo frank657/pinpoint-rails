@@ -40,6 +40,24 @@ RSpec.describe ForkService do
       expect(fork.source_id).to eq(source.id.to_s)
       expect(fork.target_workspace).to eq(ws_b)
     end
+
+    it "relinks copied notes to the copied segments (ADR 0011 #20)" do
+      src = ActsAsTenant.with_tenant(ws_a) do
+        v = create(:video, workspace: ws_a, youtube_id: "seg12345678", title: "Seg")
+        seg = create(:segment, workspace: ws_a, video: v, title: "Chapter 1", start_seconds: 0, end_seconds: 60)
+        create(:note, workspace: ws_a, video: v, title: "inside", start_seconds: 30) # auto-maps into seg
+        expect(seg.notes.map(&:title)).to eq([ "inside" ])
+        v
+      end
+
+      forked = ForkService.call(src, target_workspace: ws_b, forked_by: forker)
+      ActsAsTenant.with_tenant(ws_b) do
+        copied_seg = forked.segments.find_by(title: "Chapter 1")
+        copied_note = forked.notes.find_by(title: "inside")
+        expect(copied_note.segment).to eq(copied_seg) # links to the COPIED segment, not the source
+        expect(copied_seg.id).not_to eq(ActsAsTenant.with_tenant(ws_a) { src.segments.first.id })
+      end
+    end
   end
 
   it "shares the underlying Vod by reference when forking an uploaded video" do
@@ -55,14 +73,14 @@ RSpec.describe ForkService do
   it "does not carry taxonomy (category/tags) over — forked notes start unlabelled" do
     note = ActsAsTenant.with_tenant(ws_a) do
       v = create(:video, workspace: ws_a)
-      n = create(:note, workspace: ws_a, video: v, category: create(:category, workspace: ws_a, name: "Sweeps"))
+      n = create(:note, workspace: ws_a, video: v, categories: [ create(:category, workspace: ws_a, name: "Sweeps") ])
       n.tags = Tag.for_names([ "guard" ]); n.save!
       n
     end
 
     forked = ForkService.call(note, target_workspace: ws_b, forked_by: forker)
     ActsAsTenant.with_tenant(ws_b) do
-      expect(forked.category).to be_nil
+      expect(forked.categories).to be_empty
       expect(forked.tags).to be_empty
     end
   end

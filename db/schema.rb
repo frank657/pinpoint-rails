@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_15_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_17_090002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -88,6 +88,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_130000) do
     t.index ["target_workspace_id"], name: "index_forks_on_target_workspace_id"
   end
 
+  create_table "note_categories", force: :cascade do |t|
+    t.bigint "category_id", null: false
+    t.uuid "note_id", null: false
+    t.index ["category_id"], name: "index_note_categories_on_category_id"
+    t.index ["note_id", "category_id"], name: "index_note_categories_on_note_id_and_category_id", unique: true
+    t.index ["note_id"], name: "index_note_categories_on_note_id"
+  end
+
   create_table "note_positions", force: :cascade do |t|
     t.uuid "note_id", null: false
     t.bigint "position_id", null: false
@@ -105,18 +113,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_130000) do
   end
 
   create_table "notes", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.bigint "category_id"
     t.datetime "created_at", null: false
     t.bigint "created_by_id"
     t.float "end_seconds"
     t.integer "note_type", default: 0, null: false
+    t.uuid "segment_id"
     t.float "start_seconds"
     t.string "title"
     t.datetime "updated_at", null: false
     t.bigint "video_id"
     t.bigint "workspace_id", null: false
-    t.index ["category_id"], name: "index_notes_on_category_id"
     t.index ["created_by_id"], name: "index_notes_on_created_by_id"
+    t.index ["segment_id"], name: "index_notes_on_segment_id"
     t.index ["video_id", "start_seconds"], name: "index_notes_on_video_id_and_start_seconds"
     t.index ["video_id"], name: "index_notes_on_video_id"
     t.index ["workspace_id"], name: "index_notes_on_workspace_id"
@@ -148,19 +156,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_130000) do
     t.index ["user_id", "workspace_id", "trackable_type", "trackable_id"], name: "index_progress_unique", unique: true
     t.index ["user_id"], name: "index_progresses_on_user_id"
     t.index ["workspace_id"], name: "index_progresses_on_workspace_id"
-  end
-
-  create_table "segments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.float "end_seconds"
-    t.integer "position", default: 0, null: false
-    t.float "start_seconds", null: false
-    t.string "title"
-    t.datetime "updated_at", null: false
-    t.bigint "video_id", null: false
-    t.bigint "workspace_id", null: false
-    t.index ["video_id"], name: "index_segments_on_video_id"
-    t.index ["workspace_id"], name: "index_segments_on_workspace_id"
   end
 
   create_table "shares", force: :cascade do |t|
@@ -246,6 +241,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_130000) do
     t.index ["video_id"], name: "index_video_athletes_on_video_id"
   end
 
+  create_table "video_segments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.float "end_seconds"
+    t.integer "position", default: 0, null: false
+    t.float "start_seconds", null: false
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.bigint "video_id", null: false
+    t.bigint "workspace_id", null: false
+    t.index ["video_id", "start_seconds"], name: "index_video_segments_on_video_id_and_start_seconds"
+    t.index ["video_id"], name: "index_video_segments_on_video_id"
+    t.index ["workspace_id"], name: "index_video_segments_on_workspace_id"
+  end
+
   create_table "videos", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.float "duration_seconds"
@@ -308,20 +317,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_130000) do
   add_foreign_key "forks", "users", column: "forked_by_id"
   add_foreign_key "forks", "workspaces", column: "source_workspace_id"
   add_foreign_key "forks", "workspaces", column: "target_workspace_id"
+  add_foreign_key "note_categories", "categories"
+  add_foreign_key "note_categories", "notes"
   add_foreign_key "note_positions", "notes"
   add_foreign_key "note_positions", "positions"
   add_foreign_key "note_techniques", "notes"
   add_foreign_key "note_techniques", "techniques"
-  add_foreign_key "notes", "categories"
   add_foreign_key "notes", "users", column: "created_by_id"
+  add_foreign_key "notes", "video_segments", column: "segment_id", on_delete: :nullify
   add_foreign_key "notes", "videos"
   add_foreign_key "notes", "workspaces"
   add_foreign_key "positions", "positions", column: "parent_id"
   add_foreign_key "positions", "workspaces"
   add_foreign_key "progresses", "users"
   add_foreign_key "progresses", "workspaces"
-  add_foreign_key "segments", "videos"
-  add_foreign_key "segments", "workspaces"
   add_foreign_key "shares", "users", column: "shared_by_id"
   add_foreign_key "shares", "workspaces"
   add_foreign_key "taggings", "tags"
@@ -332,6 +341,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_15_130000) do
   add_foreign_key "techniques", "workspaces"
   add_foreign_key "video_athletes", "athletes"
   add_foreign_key "video_athletes", "videos"
+  add_foreign_key "video_segments", "videos"
+  add_foreign_key "video_segments", "workspaces"
   add_foreign_key "videos", "users", column: "uploaded_by_id"
   add_foreign_key "videos", "vods"
   add_foreign_key "videos", "workspaces"

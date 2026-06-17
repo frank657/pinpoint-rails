@@ -78,6 +78,7 @@ export default function VideoShow({
           <NotesPanel
             videoId={video.id}
             notes={notes}
+            segments={segments}
             categories={categories}
             tags={tags}
             positions={positions}

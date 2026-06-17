@@ -11,6 +11,33 @@ RSpec.describe "Notes", type: :request do
     ActsAsTenant.current_tenant = workspace
   end
 
+  describe "PATCH /notes/:id — segment assignment (ADR 0011 #13/#14)" do
+    let(:seg) { create(:segment, workspace: workspace, video: video, start_seconds: 0, end_seconds: 60) }
+
+    it "pins a note to a segment (drag)" do
+      seg
+      note = create(:note, workspace: workspace, video: video, start_seconds: 120) # loose (in a gap)
+      patch app_note_path(note), params: { segment_id: seg.id }
+      expect(note.reload.segment).to eq(seg)
+    end
+
+    it "detaches a note (− button / drag to loose)" do
+      seg
+      note = create(:note, workspace: workspace, video: video, start_seconds: 30) # auto-mapped into seg
+      expect(note.segment).to eq(seg)
+      patch app_note_path(note), params: { segment_id: "" }
+      expect(note.reload.segment_id).to be_nil
+    end
+
+    it "assigns multiple categories, positions and techniques" do
+      c1 = create(:category, workspace: workspace, name: "Sweeps")
+      c2 = create(:category, workspace: workspace, name: "Passes")
+      note = create(:note, workspace: workspace, video: video, start_seconds: 10)
+      patch app_note_path(note), params: { category_ids: [ c1.id, c2.id ] }
+      expect(note.reload.categories).to contain_exactly(c1, c2)
+    end
+  end
+
   describe "POST /notes (timestamp note on a video)" do
     it "creates a point note capturing numeric seconds, with category and tags" do
       category = create(:category, workspace: workspace, name: "Sweeps")
@@ -18,13 +45,13 @@ RSpec.describe "Notes", type: :request do
       expect {
         post app_notes_path, params: {
           note_type: "timestamp", video_id: video.id, start_seconds: "42.5",
-          title: "Grip first", category_id: category.id, tag_names: [ "guard", "closed" ]
+          title: "Grip first", category_ids: [ category.id ], tag_names: [ "guard", "closed" ]
         }
       }.to change(Note, :count).by(1)
 
       note = Note.last
       expect(note.start_seconds).to eq(42.5)
-      expect(note.category).to eq(category)
+      expect(note.categories).to contain_exactly(category)
       expect(note.tags.map(&:name)).to contain_exactly("guard", "closed")
       expect(response).to redirect_to(app_video_path(video))
     end

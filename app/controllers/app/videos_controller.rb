@@ -24,7 +24,7 @@ module App
         video: video_json(video),
         playback: playback_json(video),
         resumeSeconds: my_progress(video)&.resume_seconds || 0,
-        notes: Note.for_video(video).includes(:category, :tags, :positions, :techniques, :rich_text_body).map { |n| note_json(n) },
+        notes: Note.for_video(video).includes(:categories, :tags, :positions, :techniques, :rich_text_body).map { |n| note_json(n) },
         segments: Video::Segment.for_video(video).map { |s| segment_json(s) },
         categories: Category.order(:name).map { |c| { id: c.id, name: c.name } },
         positions: Position.order(:name).map { |p| { id: p.id, name: p.name } },

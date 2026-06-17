@@ -39,3 +39,4 @@ edit an accepted decision into something different, and never silently diverge i
 | [0006](0006-subdomain-architecture.md) | Subdomain layout (landing / app / admin) | Accepted |
 | [0007](0007-port-from-method-channel.md) | What to port from method-channel vs. drop/replace | Accepted |
 | [0008](0008-authorization-action-policy.md) | Authorization via Action Policy (not CanCanCan) | Accepted |
+| [0011](0011-note-segment-mapping.md) | Notes mapped into segments (stored association, orphan/pinned) | Accepted |

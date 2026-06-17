@@ -14,7 +14,7 @@ export default function NewNote({ categories, tags }: { categories: Category[]; 
     note_type: 'rich_text',
     title: '',
     body: '',
-    category_id: '' as string | number,
+    category_ids: [] as number[],
     tag_names: '',
   })
 
@@ -40,11 +40,12 @@ export default function NewNote({ categories, tags }: { categories: Category[]; 
         <RichTextEditor value={body} onChange={setBody} placeholder="Write anything — paste images, format text…" />
         <div className="flex gap-2">
           <select
-            value={form.data.category_id}
-            onChange={(e) => form.setData('category_id', e.target.value)}
+            multiple
+            value={form.data.category_ids.map(String)}
+            onChange={(e) => form.setData('category_ids', Array.from(e.target.selectedOptions, (o) => Number(o.value)))}
             className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+            aria-label="Categories"
           >
-            <option value="">No category</option>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           <input
