@@ -7,7 +7,7 @@ import { VodUploader, type UploaderState } from '../../lib/vodUploader'
 import { formatTime } from '../../lib/time'
 
 interface VideoCard {
-  id: number
+  id: string
   title: string
   source: 'upload' | 'youtube'
   status: string

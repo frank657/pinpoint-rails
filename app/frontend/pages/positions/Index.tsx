@@ -2,8 +2,8 @@ import { Head, Link, router, useForm } from '@inertiajs/react'
 import type { FormEvent } from 'react'
 import AppShell from '../../components/AppShell'
 
-interface Position { id: number; name: string; category: string; dominance: string; noteCount: number }
-interface Technique { id: number; name: string; kind: string; from: string | null; to: string | null }
+interface Position { id: string; name: string; category: string; dominance: string; noteCount: number }
+interface Technique { id: string; name: string; kind: string; from: string | null; to: string | null }
 
 const DOM_COLOR: Record<string, string> = { dominant: 'text-emerald-600', neutral: 'text-neutral-500', inferior: 'text-red-500' }
 const NODE_FILL: Record<string, string> = { dominant: '#10b981', neutral: '#a3a3a3', inferior: '#ef4444' }

@@ -63,11 +63,14 @@ on demand) enabled, then provide:
 > Until these are set: the upload UI will fail when it calls `POST /videos/upload`
 > (provisioning needs the keys). Everything else — auth, workspaces, YouTube videos — works.
 
-## 5. YouTube Data API key — 🟡 optional (only for **duration**)
+## 5. YouTube Data API key — 🟡 optional (powers **duration** + **chapter import**)
 
 `youtube.api_key`. Without it, pasted YouTube videos still work (title + thumbnail come from
-the keyless oEmbed endpoint); only the **duration** is left blank (the player reports it
-client-side anyway). Get one at Google Cloud console → enable "YouTube Data API v3".
+the keyless oEmbed endpoint), but two features go dark: the **duration** is left blank (the
+player reports it client-side anyway), and **"Import from YouTube"** on the video page can't
+read the description, so chapter→segment import finds nothing. Get one at Google Cloud console
+→ enable "YouTube Data API v3" → Create credentials → **Public data** (a plain API key, no
+OAuth). Restrict the key to the YouTube Data API. Both features ride the same key.
 
 ## 6. Email delivery (Devise password reset) — 🟡 optional now, 🔴 for production
 
@@ -119,4 +122,4 @@ host:
 | Aliyun upload **provisioning + webhook + reference counting** | ✅ tested with the provider **stubbed** |
 | Aliyun **provisioning (CreateUploadVideo)** against the real account | ✅ verified live (bucket `pinpoint-vod-dev`, oss-cn-shanghai) |
 | Aliyun **real** browser upload + transcode + HLS playback | ◻️ end-to-end browser upload still to be exercised manually |
-| YouTube **duration** | ⛔ needs `youtube.api_key` (item 5) |
+| YouTube **duration** + **chapter import** | needs `youtube.api_key` (item 5) |

@@ -1,7 +1,7 @@
 import { router } from '@inertiajs/react'
 import { useState } from 'react'
 
-interface ShareInfo { id: number; token: string }
+interface ShareInfo { id: string; token: string }
 
 // Creates / shows / revokes a share link for a content object.
 export default function ShareButton({

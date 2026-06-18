@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react'
 import AppShell from '../../components/AppShell'
 
 interface Tag {
-  id: number
+  id: string
   name: string
   count: number
 }
@@ -72,7 +72,7 @@ function TagRow({ tag, allTags }: { tag: Tag; allTags: Tag[] }) {
     }
   }
 
-  const mergeInto = (targetId: number) => {
+  const mergeInto = (targetId: string) => {
     router.post(`/tags/${tag.id}/merge`, { target_id: targetId }, { onSuccess: () => setMerging(false) })
   }
 
@@ -110,7 +110,7 @@ function TagRow({ tag, allTags }: { tag: Tag; allTags: Tag[] }) {
           <select
             autoFocus
             defaultValue=""
-            onChange={(e) => e.target.value && mergeInto(Number(e.target.value))}
+            onChange={(e) => e.target.value && mergeInto(e.target.value)}
             onBlur={() => setMerging(false)}
             className="rounded border border-neutral-300 px-2 py-1 text-sm"
           >

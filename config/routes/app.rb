@@ -16,6 +16,7 @@ scope module: :app, as: :app do
 
   resources :videos, only: %i[index show create update destroy] do
     get :status, on: :member
+    post :import_chapters, on: :member
   end
   get "search",       to: "search#index"
   get "search/query", to: "search#query"

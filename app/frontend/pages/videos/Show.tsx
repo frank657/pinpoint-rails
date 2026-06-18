@@ -4,23 +4,10 @@ import axios from 'axios'
 import { PencilSimple, Check, X } from '@phosphor-icons/react'
 import AppShell from '../../components/AppShell'
 import VideoPlayer, { type Playback, type PlayerHandle } from '../../components/VideoPlayer'
-import NotesPanel, { type Note, type TaxonomyRef } from '../../components/NotesPanel'
-import SegmentsEditor, { type Segment } from '../../components/SegmentsEditor'
-import TokenInput from '../../components/TokenInput'
-
-interface VideoDetail {
-  id: number
-  title: string
-  source: 'upload' | 'youtube'
-  durationSeconds: number | null
-  tags: string[]
-  athletes: string[]
-}
-
-interface Category {
-  id: number
-  name: string
-}
+import ChapterStrip from '../../components/ChapterStrip'
+import VideoDetails from '../../components/VideoDetails'
+import TimelinePanel from '../../components/TimelinePanel'
+import type { VideoDetail, Note, Segment, TaxonomyRef, Athlete } from '../../types/video'
 
 export default function VideoShow({
   video,
@@ -39,15 +26,16 @@ export default function VideoShow({
   resumeSeconds: number
   notes: Note[]
   segments: Segment[]
-  categories: Category[]
+  categories: TaxonomyRef[]
   tags: string[]
-  athletes: string[]
+  athletes: Athlete[]
   positions: TaxonomyRef[]
   techniques: TaxonomyRef[]
 }) {
   const player = useRef<PlayerHandle>(null)
   const seek = (s: number) => player.current?.seek(s)
-  const getCurrentTime = () => player.current?.currentTime() ?? 0
+  const getCurrentTime = useCallback(() => player.current?.currentTime() ?? 0, [])
+  const [currentTime, setCurrentTime] = useState(0)
 
   // Resume where the user left off, then persist progress periodically (Axis 3, Phase 7).
   useEffect(() => {
@@ -61,88 +49,54 @@ export default function VideoShow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [video.id])
 
+  // Poll the player so the chapter-strip playhead tracks playback.
+  useEffect(() => {
+    const t = setInterval(() => setCurrentTime(getCurrentTime()), 500)
+    return () => clearInterval(t)
+  }, [getCurrentTime])
+
+  const opts = { categories, positions, techniques, tags }
+
   return (
     <AppShell>
       <Head title={`${video.title} · Pinpoint`} />
-      <Link href="/videos" className="text-sm text-neutral-500 hover:text-neutral-900">← All videos</Link>
+      <Link href="/videos" className="text-sm text-muted hover:text-ink">← All videos</Link>
       <VideoTitle videoId={video.id} title={video.title} />
-      <VideoMeta video={video} allTags={tags} allAthletes={athletes} />
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
+      <div className="mt-2 grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_392px]">
+        {/* left: player + below-video */}
         <div>
           <VideoPlayer ref={player} playback={playback} />
-          <SegmentsEditor videoId={video.id} segments={segments} onSeek={seek} getCurrentTime={getCurrentTime} />
+          <p className="mt-2.5 text-[10.5px] text-faint">↑ scrub the player, then add a note/segment — Start is captured from the playhead (editable).</p>
+
+          <VideoDetails
+            video={video}
+            allCategories={categories}
+            allPositions={positions}
+            allTechniques={techniques}
+            allTags={tags}
+            allAthletes={athletes}
+            noteCount={notes.length}
+            segmentCount={segments.length}
+          />
+          <ChapterStrip segments={segments} durationSeconds={video.durationSeconds} currentTime={currentTime} onSeek={seek} />
         </div>
 
-        <div className="lg:h-[70vh]">
-          <NotesPanel
-            videoId={video.id}
-            notes={notes}
-            segments={segments}
-            categories={categories}
-            tags={tags}
-            positions={positions}
-            techniques={techniques}
-            onSeek={seek}
-            getCurrentTime={getCurrentTime}
-          />
-        </div>
+        {/* right: unified timeline */}
+        <TimelinePanel
+          videoId={video.id}
+          notes={notes}
+          segments={segments}
+          opts={opts}
+          getCurrentTime={getCurrentTime}
+          onSeek={seek}
+        />
       </div>
     </AppShell>
   )
 }
 
-// Inline editor for a video's free tags and featured athletes. Displays chips read-only until
-// you hit "Edit", then swaps to TokenInputs and PATCHes /videos/:id on save.
-function VideoMeta({ video, allTags, allAthletes }: { video: VideoDetail; allTags: string[]; allAthletes: string[] }) {
-  const [editing, setEditing] = useState(false)
-  const [tags, setTags] = useState(video.tags)
-  const [people, setPeople] = useState(video.athletes)
-
-  const save = () => {
-    router.patch(`/videos/${video.id}`, { tag_names: tags, athlete_names: people }, {
-      preserveScroll: true,
-      onSuccess: () => setEditing(false),
-    })
-  }
-
-  const cancel = () => { setTags(video.tags); setPeople(video.athletes); setEditing(false) }
-
-  if (!editing) {
-    return (
-      <div className="mt-3 flex flex-wrap items-center gap-1.5">
-        {video.athletes.map((a) => (
-          <span key={a} className="rounded-full bg-teal/10 px-2.5 py-0.5 text-xs font-medium text-teal">{a}</span>
-        ))}
-        {video.tags.map((t) => (
-          <span key={t} className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">#{t}</span>
-        ))}
-        <button onClick={() => setEditing(true)} className="rounded-full border border-dashed border-neutral-300 px-2.5 py-0.5 text-xs text-neutral-500 hover:border-neutral-400 hover:text-neutral-700">
-          {video.tags.length || video.athletes.length ? 'Edit tags & athletes' : '+ Tags & athletes'}
-        </button>
-      </div>
-    )
-  }
-
-  return (
-    <div className="mt-3 space-y-2 rounded-xl border border-neutral-200 bg-white p-3">
-      <div>
-        <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-neutral-400">Athletes</label>
-        <TokenInput value={people} onChange={setPeople} suggestions={allAthletes} placeholder="Add an athlete…" chipClassName="bg-teal/10 text-teal" />
-      </div>
-      <div>
-        <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-neutral-400">Tags</label>
-        <TokenInput value={tags} onChange={setTags} suggestions={allTags} placeholder="Add a tag…" />
-      </div>
-      <div className="flex gap-2">
-        <button onClick={save} className="rounded-lg bg-ember px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-500">Save</button>
-        <button onClick={cancel} className="rounded-lg px-3 py-1.5 text-sm text-neutral-500 hover:bg-neutral-100">Cancel</button>
-      </div>
-    </div>
-  )
-}
-
-function VideoTitle({ videoId, title }: { videoId: number; title: string }) {
+function VideoTitle({ videoId, title }: { videoId: string; title: string }) {
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState(title)
 
@@ -160,7 +114,7 @@ function VideoTitle({ videoId, title }: { videoId: number; title: string }) {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') { setEditing(false); setValue(title) } }}
-          className="flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-2xl font-semibold tracking-tight focus:border-ember focus:outline-none"
+          className="flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 font-display text-2xl font-semibold tracking-tight focus:border-ember focus:outline-none"
         />
         <button onClick={submit} className="flex items-center gap-1 rounded-lg bg-ember px-3 py-2 text-sm font-medium text-white hover:bg-amber-500">
           <Check size={14} weight="bold" /> Save
@@ -174,7 +128,7 @@ function VideoTitle({ videoId, title }: { videoId: number; title: string }) {
 
   return (
     <div className="group mt-2 flex items-center gap-2">
-      <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+      <h1 className="font-display text-2xl font-semibold tracking-tight">{title}</h1>
       <button
         onClick={() => setEditing(true)}
         className="rounded-md p-1 text-neutral-300 opacity-0 transition hover:text-neutral-600 group-hover:opacity-100"

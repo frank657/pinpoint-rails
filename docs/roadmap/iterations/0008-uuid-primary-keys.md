@@ -1,16 +1,19 @@
 # Iteration 0008 — UUID primary keys everywhere
 
-> **Status:** 🚧 generator-default shipped; **existing-data conversion gated on a decision** ·
-> **Owner:** Frank · **Started:** 2026-06-17 · **Shipped:** —
+> **Status:** ✅ **Shipped (dev + test)** — locked by **ADR 0012** ·
+> **Owner:** Frank · **Started:** 2026-06-17 · **Shipped:** 2026-06-18
 >
-> **Done:** future tables now default to UUID — `config/initializers/generators.rb`
-> (`primary_key_type: :uuid`); pgcrypto already enabled. **Not done (needs go):** converting the
-> existing bigint tables — destructive (Path A) or large+slow (Path B); see the decision below.
-> Links: should be locked by a new **ADR 0012** (app-wide, hard-to-reverse) · relates to ADR 0011.
+> **Decision taken:** Path **B (in-place, preserve data)**, **dev + test only** — production is
+> rolled out separately by the owner (dump → migrate → smoke test).
 >
-> **Planning only — do not execute without an explicit decision.** Converting every primary key
-> is the most invasive migration there is, and it conflicts with the "must not break production"
-> rule (it cannot be done zero-downtime in place).
+> **Done:** every bigint PK + FK + polymorphic id converted to uuid in place, data preserved
+> (migration `20260618110000_convert_primary_keys_to_uuid`); the `taggable_id::bigint` /
+> `map(&:to_i)` workarounds removed; athlete-avatar Active Storage attach now works; frontend ids
+> retyped `number → string`. Default-workspace resolution fixed to `order(:created_at)` (uuid `.first`
+> is no longer chronological). Green: `rspec 177/0`, `tsc`, `vite build`, `rubocop`; live page verified.
+>
+> **Production rollout (owner, not done here):** maintenance window, fresh dump first, run the
+> migration, run the smoke test; roll back by restoring the dump (migration is irreversible).
 
 ## Goal
 

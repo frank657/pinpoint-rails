@@ -2,14 +2,14 @@ import { Head, Link, usePage } from '@inertiajs/react'
 import AppShell, { type AppSharedProps } from '../components/AppShell'
 import { formatTime } from '../lib/time'
 
-interface ContinueItem { id: number; title: string; resumeSeconds: number }
+interface ContinueItem { id: string; title: string; resumeSeconds: number }
 interface NoteRow {
   id: string
   noteType: 'timestamp' | 'rich_text'
   videoId: number | null
   title: string | null
   startSeconds: number | null
-  categories: { id: number; name: string }[]
+  categories: { id: string; name: string }[]
   tags: string[]
 }
 

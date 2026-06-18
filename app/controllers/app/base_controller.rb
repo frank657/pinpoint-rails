@@ -19,7 +19,9 @@ module App
 
     def resolve_current_workspace
       workspace = current_user.workspaces.find_by(id: session[:current_workspace_id])
-      workspace ||= current_user.workspaces.first
+      # Oldest workspace as the default — order explicitly (ids are uuid, so implicit id order is
+      # not chronological).
+      workspace ||= current_user.workspaces.order(:created_at).first
       session[:current_workspace_id] = workspace&.id
       workspace
     end

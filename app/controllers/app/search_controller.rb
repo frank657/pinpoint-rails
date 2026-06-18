@@ -28,11 +28,11 @@ module App
     end
 
     # Videos matching by title, tag, or featured athlete. Tag/athlete ids are gathered separately
-    # (the polymorphic string taggable_id can't be SQL-joined to videos.id) then unioned.
+    # then unioned. Since ADR 0012, taggable_id is a uuid that matches videos.id directly.
     def video_results(q)
       like = "%#{Video.sanitize_sql_like(q)}%"
       ids  = Video.where("title ILIKE ?", like).ids
-      ids += Tagging.joins(:tag).where(taggable_type: "Video").where("tags.name ILIKE ?", like).pluck(:taggable_id).map(&:to_i)
+      ids += Tagging.joins(:tag).where(taggable_type: "Video").where("tags.name ILIKE ?", like).pluck(:taggable_id)
       ids += Video.joins(:athletes).where("athletes.name ILIKE ?", like).ids
       Video.where(id: ids.uniq).order(created_at: :desc).limit(20)
     end

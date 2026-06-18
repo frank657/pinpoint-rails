@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react'
 import AppShell from '../../components/AppShell'
 
 interface Category {
-  id: number
+  id: string
   name: string
   count: number
 }
@@ -95,7 +95,7 @@ function CategoryRow({ category, all }: { category: Category; all: Category[] })
           <select
             autoFocus
             defaultValue=""
-            onChange={(e) => e.target.value && router.post(`/categories/${category.id}/merge`, { target_id: Number(e.target.value) }, { onSuccess: () => setMerging(false) })}
+            onChange={(e) => e.target.value && router.post(`/categories/${category.id}/merge`, { target_id: e.target.value }, { onSuccess: () => setMerging(false) })}
             onBlur={() => setMerging(false)}
             className="rounded border border-neutral-300 px-2 py-1 text-sm"
           >

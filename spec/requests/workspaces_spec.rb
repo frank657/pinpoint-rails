@@ -19,6 +19,15 @@ RSpec.describe "Workspaces", type: :request do
       get app_root_path, headers: inertia_headers
       expect(ActsAsTenant.current_tenant).to be_nil
     end
+
+    # Regression (ADR 0012): with uuid PKs, `workspaces.first` no longer means "oldest" — the
+    # default must order by created_at, not by the (now random) uuid id.
+    it "defaults to the oldest workspace, not an arbitrary uuid order" do
+      oldest = user.workspaces.order(:created_at).first
+      Workspace::Membership.create!(user: user, workspace: Workspace.create!(name: "Newer"))
+      get app_root_path, headers: inertia_headers
+      expect(inertia_props(response)["currentWorkspace"]["id"]).to eq(oldest.id)
+    end
   end
 
   describe "creating and switching workspaces" do

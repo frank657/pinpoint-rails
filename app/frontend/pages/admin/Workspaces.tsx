@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react'
 import AdminShell from '../../components/AdminShell'
 
-interface Row { id: number; name: string; slug: string; members: number; owner: string | null; createdAt: string }
+interface Row { id: string; name: string; slug: string; members: number; owner: string | null; createdAt: string }
 
 export default function AdminWorkspaces({ workspaces }: { workspaces: Row[] }) {
   return (

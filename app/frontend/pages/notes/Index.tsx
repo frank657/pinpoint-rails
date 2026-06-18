@@ -9,10 +9,10 @@ interface NoteRow {
   title: string | null
   body: string
   startSeconds: number | null
-  categories: { id: number; name: string }[]
+  categories: { id: string; name: string }[]
   tags: string[]
 }
-interface Category { id: number; name: string }
+interface Category { id: string; name: string }
 
 interface Props {
   notes: NoteRow[]

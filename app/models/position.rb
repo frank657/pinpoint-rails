@@ -9,6 +9,7 @@ class Position < ApplicationRecord
   has_many :children, class_name: "Position", foreign_key: :parent_id, dependent: :nullify
   has_many :techniques_from, class_name: "Technique", foreign_key: :from_position_id, dependent: :nullify
   has_and_belongs_to_many :notes, join_table: :note_positions
+  has_and_belongs_to_many :videos, join_table: :video_positions
 
   validates :name, presence: true, uniqueness: { scope: :workspace_id, case_sensitive: false }
 end

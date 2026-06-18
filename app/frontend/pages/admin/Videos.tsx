@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react'
 import AdminShell from '../../components/AdminShell'
 
-interface Row { id: number; title: string; source: string; workspace: string; vodStatus: string | null; vodKey: string | null; createdAt: string }
+interface Row { id: string; title: string; source: string; workspace: string; vodStatus: string | null; vodKey: string | null; createdAt: string }
 
 export default function AdminVideos({ videos }: { videos: Row[] }) {
   return (

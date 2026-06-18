@@ -1,7 +1,7 @@
 import { Head, router, useForm } from '@inertiajs/react'
 import AdminShell from '../../components/AdminShell'
 
-interface AdminUser { id: number; email: string; admin: boolean; workspaceCount: number; createdAt: string }
+interface AdminUser { id: string; email: string; admin: boolean; workspaceCount: number; createdAt: string }
 
 export default function AdminUsers({ users, q }: { users: AdminUser[]; q: string | null }) {
   const form = useForm({ q: q ?? '' })

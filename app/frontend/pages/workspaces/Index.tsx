@@ -3,14 +3,14 @@ import { useState } from 'react'
 import AppShell, { type Workspace } from '../../components/AppShell'
 
 export default function WorkspacesIndex({ workspaces }: { workspaces: Workspace[] }) {
-  const [editing, setEditing] = useState<number | null>(null)
+  const [editing, setEditing] = useState<string | null>(null)
   const [name, setName] = useState('')
 
-  const rename = (id: number) => {
+  const rename = (id: string) => {
     router.patch(`/workspaces/${id}`, { name }, { onSuccess: () => setEditing(null) })
   }
 
-  const destroy = (id: number) => {
+  const destroy = (id: string) => {
     if (confirm('Delete this workspace? Its content will be removed.')) {
       router.delete(`/workspaces/${id}`)
     }

@@ -7,6 +7,7 @@ class Technique < ApplicationRecord
   belongs_to :from_position, class_name: "Position", optional: true
   belongs_to :to_position, class_name: "Position", optional: true
   has_and_belongs_to_many :notes, join_table: :note_techniques
+  has_and_belongs_to_many :videos, join_table: :video_techniques
 
   validates :name, presence: true
 end

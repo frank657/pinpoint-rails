@@ -28,6 +28,32 @@ RSpec.describe Athlete, type: :model do
     end
   end
 
+  describe "avatar fallback (iteration 0007)" do
+    around { |ex| ActsAsTenant.with_tenant(workspace, &ex) }
+
+    it "derives up-to-two-letter initials from the name" do
+      expect(build(:athlete, name: "John Danaher").initials).to eq("JD")
+      expect(build(:athlete, name: "JFLOJUDO").initials).to eq("J")
+    end
+
+    it "derives a stable hue in 0..359 from the name" do
+      a = build(:athlete, name: "Gordon Ryan")
+      expect(a.avatar_hue).to eq(a.avatar_hue).and be_between(0, 359)
+    end
+
+    it "is unattached by default (UI uses the initials fallback)" do
+      expect(create(:athlete, name: "Lachlan Giles").avatar).not_to be_attached
+    end
+
+    # Now that Athlete is uuid-keyed (ADR 0012), the avatar attaches into Active Storage
+    # (whose record_id is uuid) without the prior bigint mismatch.
+    it "accepts an attached avatar image" do
+      athlete = create(:athlete, name: "Gordon Ryan")
+      athlete.avatar.attach(io: StringIO.new("img"), filename: "a.png", content_type: "image/png")
+      expect(athlete.avatar).to be_attached
+    end
+  end
+
   describe "many-to-many with Video" do
     around { |ex| ActsAsTenant.with_tenant(workspace, &ex) }
 

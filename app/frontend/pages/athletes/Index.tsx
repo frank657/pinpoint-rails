@@ -2,7 +2,7 @@ import { Head, Link, useForm } from '@inertiajs/react'
 import type { FormEvent } from 'react'
 import AppShell from '../../components/AppShell'
 
-interface Athlete { id: number; name: string; videoCount: number }
+interface Athlete { id: string; name: string; videoCount: number }
 
 export default function AthletesIndex({ athletes }: { athletes: Athlete[] }) {
   const form = useForm({ name: '' })

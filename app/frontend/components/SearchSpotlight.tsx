@@ -20,7 +20,7 @@ interface NoteHit {
 }
 
 interface VideoHit {
-  id: number
+  id: string
   title: string
   source: 'upload' | 'youtube'
   poster: string | null

@@ -99,10 +99,12 @@ Grounded in the existing models — match them.
 - **Reversible drops.** When removing a feature, write `up`/`down` so `down` recreates the table
   exactly as the original `create_*` migration did — see `DropReviewCards`, `DropTranscriptLines`.
   This keeps the migration reversible and documents what was removed.
-- **UUID primary keys are the default** (iteration 0008). New tables: `create_table :x, id: :uuid`;
+- **UUID primary keys everywhere** (ADR 0012). New tables: `create_table :x, id: :uuid`;
   references: `t.references :y, type: :uuid, foreign_key: true`. The generator default is set in
-  `config/initializers/generators.rb`. (Some legacy tables are still bigint pending the 0008
-  conversion — when adding a FK to one, match its current key type.)
+  `config/initializers/generators.rb`. Every domain table is uuid — there are no bigint PKs left
+  (only the framework-internal `active_storage_*` / `action_text_rich_texts` tables stay bigint).
+- **`.first`/`.last` is not chronological** (ADR 0012 gotcha): uuid PKs sort randomly, so when you
+  mean "oldest"/"newest" add an explicit `order(:created_at)`.
 - **Foreign keys + indexes:** add the reference + an index on any column you'll filter/sort by
   (`add_index :video_segments, %i[video_id start_seconds]`).
 - **Numeric seconds** are `t.float`, with `null: false` on the required bound.

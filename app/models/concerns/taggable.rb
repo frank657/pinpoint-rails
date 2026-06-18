@@ -1,8 +1,6 @@
 # Mixed into content models that can carry free-form tags (Note, Video). Provides the
 # polymorphic tag association plus a `tag_names=` setter that find-or-creates tags by name.
-#
-# Reads (`record.tags`) go through the preloaded association; never `joins(:tags)` — the
-# string `taggable_id` can't be SQL-joined against a uuid/bigint id column (iteration 0006a).
+# `taggable_id` is uuid for every taggable since ADR 0012.
 module Taggable
   extend ActiveSupport::Concern
 

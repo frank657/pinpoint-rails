@@ -3,6 +3,7 @@ class Category < ApplicationRecord
   acts_as_tenant :workspace
 
   has_and_belongs_to_many :notes, join_table: :note_categories
+  has_and_belongs_to_many :videos, join_table: :video_categories
 
   validates :name, presence: true, uniqueness: { scope: :workspace_id, case_sensitive: false }
 

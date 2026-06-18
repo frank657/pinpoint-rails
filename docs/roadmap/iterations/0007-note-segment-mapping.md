@@ -240,11 +240,84 @@ fix the note-editor gaps found in the audit:
   with backfill); note editor assigns **multiple categories/positions/techniques**; create form
   snapshots the playhead into Start + "+ end time". Frontend updated for the `categories[]` prop.
 
-**Remaining — Phase C (the grouped drag/drop timeline on the video page).** The backend exposes
-everything it needs (`note.segmentId`, segments list). The visual restructure (segment cards with
-nested notes, loose/unanchored, edit-mode drag between cards + drag-into-loose-gap + "−" detach)
-is the one piece left, to be built against `segments-notes-interactive.html` **with in-browser
-verification** rather than blind. Not started.
+## Build progress (2026-06-18) — Phase C + scope additions shipped
+
+**Done & green** (`rspec 175/0`, `tsc` clean, `vite build` ok, `rubocop` clean), verified in-browser
+against `docs/mockups/video-page-full.html` (headless-Chrome screenshots of the live `/videos/4`):
+
+- **Unified video page** — `videos/Show.tsx` rebuilt: two-column grid (`1fr 392px`), the old
+  `SegmentsEditor` + `NotesPanel` + top tags/athletes chip row are **removed/deleted**.
+- **`TimelinePanel`** (new) — one panel: `+ Note at current time` (playhead-captured start, untimed,
+  `+ end time`→range, searchable taxonomy pickers, body) · `+ Segment` form · `Organize` toggle ·
+  time-ordered body (Unanchored section, segment cards with nested notes, loose notes, `⋯ gap ⋯`
+  separators, empty states) · edit-mode drag between segments / drag-to-loose-gap, `−` detach,
+  per-row `✎` inline editor + `🗑` delete. All persist via Inertia (`/notes`, `/segments`).
+- **`VideoDetails`** (new) — read-first property list (Description + Categories/Positions/Techniques/
+  Athletes/Tags): reads as chips, click a row to edit just that field, `Done` commits via
+  `PATCH /videos/:id`; one field open at a time (auto-commits the previous).
+- **`ChapterStrip`** (new) — segment blocks positioned by time + live playhead, click-to-seek.
+- **`TokenPicker`** (new) — the searchable combobox (filter → dropdown → pill ×; tags/athletes
+  create-on-Enter; athlete options/pills show avatars). **`AthleteAvatar`** = image or initials badge.
+- **Backend** — `videos.description` (text, sanitized HTML); `video_categories`/`video_positions`/
+  `video_techniques` HABTM joins (migration `20260618100000`, reversible); `Video` HABTM +
+  inverse on Category/Position/Technique; `Athlete#initials` + `#avatar_hue`; `video_show_json`
+  emits description + video taxonomy + athlete objects; `VideosController#update` permits
+  `description` + `*_ids`. Specs: `athlete_spec` (initials/hue/avatar), `videos_spec`
+  (taxonomy+description PATCH, show payload shape).
+
+**Deferred to the UUID pass (iteration 0008) — same bigint-vs-uuid root cause:**
+- **Athlete avatar IMAGE upload**: `active_storage_attachments.record_id` is `uuid`, Athlete is
+  still bigint-keyed, so an image can't attach yet. `has_one_attached :avatar` is declared and the
+  serializer reads it (returns nil → initials fallback, which is what the mockup shows). Wire up
+  upload once Athlete is uuid.
+- **Video description via Action Text**: same `record_id uuid` blocker, so the description is a
+  plain sanitized-HTML `text` column (edited with Trix, rendered as HTML) rather than
+  `has_rich_text`. Move to Action Text after 0008 if attachment support in the description is wanted.
+
+**Decision on storage shape:** video taxonomy uses dedicated HABTM joins (parity with `note_*`),
+**not** the single polymorphic taxonomy join floated in scope addition #5 — that consolidation
+stays with the UUID work (it needs uniform key types to avoid the `Tagging` string-id workaround).
+
+## Scope additions — from the full-page mockup review (2026-06-17)
+
+The full video-page mockup (`docs/mockups/video-page-full.html`) is the agreed visual/interaction
+spec for the Phase C rebuild. It pulled in these **confirmed** changes (to fold into the build):
+
+1. **Unified video page** — one timeline panel (segment cards + notes + inline "+ Note"/"+ Segment"
+   + Organize/drag/detach), replacing the split `SegmentsEditor` + flat `NotesPanel`. A
+   **below-video** section holds the video's own attributes; the redundant top tags/athletes chip
+   row is **removed**.
+3. **Searchable token pickers** everywhere (filter → pill with ✕); tags & athletes are
+   **create-on-Enter**, curated taxonomy is pick-existing.
+4. **Video-level taxonomy** — videos get **categories, positions, techniques** (+ existing tags,
+   athletes), enabling Library filters like "all videos in Closed Guard."
+5. **Taxonomy goes polymorphic** (owner's call): one join per taxonomy shared by **Note and Video**
+   (mirrors `Tagging`, which is already polymorphic) — replaces the per-type `note_categories` /
+   `note_positions` / `note_techniques` with polymorphic equivalents. (Interacts with the 0008
+   UUID pass — joins get touched either way.)
+6. **Video rich-text `description`** — `has_rich_text :description` on Video (Action Text), like a
+   note's body; shown/edited in the below-video section.
+7. **Chapter strip** under the player — horizontal segment blocks + live playhead, click-to-seek;
+   mirrors the vertical timeline.
+8. **Read-first property layout** (replaces the always-open picker form). The below-video
+   attribute block (description + categories/positions/techniques/athletes/tags) renders as a
+   **read view** by default — each property is a row of value chips (or a muted `+ Add` /
+   `+ Add description` affordance when empty). Clicking a row **opens just that one field** into
+   its editor (searchable picker / rich-text box) with a **Done** button; clicking another row (or
+   Done) commits the open field and closes it. Only one field is editable at a time. This is the
+   Notion/Linear "property reads as text, click to edit" pattern — it stops the section from
+   looking like a permanent form. (Mockup engine: `vid` state, `renderDetails`, `commitOpen`,
+   `readChip`, `FK` map in `video-page-full.html`.) The note/segment inline editors keep their
+   existing ✎-to-open-editor behavior — same principle (read by default, edit on intent).
+9. **Athletes get avatars.** `Athlete has_one_attached :avatar`; render the avatar image wherever
+   an athlete appears (read chips, picker pills, picker dropdown options). **Fallback when no
+   avatar: a circular initials badge** derived from the name (1–2 letters), never a broken image.
+   The athlete's **name always accompanies** the avatar (avatar + name, not avatar alone). Applies
+   to the video's athlete property, note athlete chips, and the searchable athlete picker.
+
+> These expand Phase C/E meaningfully (new polymorphic joins + video description + video taxonomy
+> + Library filters + read-first property editing + athlete avatars). Worth a short ADR addendum
+> (or ADR 0012 alongside UUID) since polymorphic taxonomy is an app-wide model decision.
 
 ## Out of scope (→ later)
 

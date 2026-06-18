@@ -124,6 +124,31 @@ RSpec.describe "Videos", type: :request do
     end
   end
 
+  describe "PATCH /videos/:id (video-level taxonomy & description)" do
+    it "assigns categories, positions, techniques and a description" do
+      category = nil
+      position = nil
+      technique = nil
+      video = ActsAsTenant.with_tenant(workspace) do
+        category = create(:category, name: "Sweeps")
+        position = Position.create!(name: "Ashi Garami", category: :guard, dominance: :neutral)
+        technique = Technique.create!(name: "Foot sweep", kind: :takedown)
+        create(:video, workspace: workspace)
+      end
+
+      patch app_video_path(video), params: {
+        description: "<p>Great <strong>entry</strong></p>",
+        category_ids: [ category.id ], position_ids: [ position.id ], technique_ids: [ technique.id ]
+      }
+
+      video.reload
+      expect(video.categories).to contain_exactly(category)
+      expect(video.positions).to contain_exactly(position)
+      expect(video.techniques).to contain_exactly(technique)
+      expect(video.description).to include("entry")
+    end
+  end
+
   describe "GET /videos/:id (youtube)" do
     it "returns playback data for the embed" do
       video = ActsAsTenant.with_tenant(workspace) { create(:video, workspace: workspace, youtube_id: "abc12345678") }
@@ -131,6 +156,25 @@ RSpec.describe "Videos", type: :request do
       playback = inertia_props(response)["playback"]
       expect(playback["source"]).to eq("youtube")
       expect(playback["youtubeId"]).to eq("abc12345678")
+    end
+
+    it "serializes video-level taxonomy, description and athletes as avatar objects" do
+      video = ActsAsTenant.with_tenant(workspace) do
+        v = create(:video, workspace: workspace, description: "<p>hi</p>")
+        v.categories = [ create(:category, name: "Sweeps") ]
+        v.athletes = [ create(:athlete, name: "John Danaher") ]
+        v
+      end
+
+      get app_video_path(video), headers: inertia_headers
+      props = inertia_props(response)["video"]
+
+      expect(props["description"]).to include("hi")
+      expect(props["categories"].map { |c| c["name"] }).to contain_exactly("Sweeps")
+      athlete = props["athletes"].first
+      expect(athlete).to include("name" => "John Danaher", "initials" => "JD")
+      expect(athlete).to have_key("avatarUrl")
+      expect(athlete["hue"]).to be_between(0, 359)
     end
   end
 

@@ -4,7 +4,7 @@ import AppShell from '../../components/AppShell'
 import RichTextEditor from '../../components/RichTextEditor'
 
 interface Category {
-  id: number
+  id: string
   name: string
 }
 
@@ -14,7 +14,7 @@ export default function NewNote({ categories, tags }: { categories: Category[]; 
     note_type: 'rich_text',
     title: '',
     body: '',
-    category_ids: [] as number[],
+    category_ids: [] as string[],
     tag_names: '',
   })
 
@@ -42,7 +42,7 @@ export default function NewNote({ categories, tags }: { categories: Category[]; 
           <select
             multiple
             value={form.data.category_ids.map(String)}
-            onChange={(e) => form.setData('category_ids', Array.from(e.target.selectedOptions, (o) => Number(o.value)))}
+            onChange={(e) => form.setData('category_ids', Array.from(e.target.selectedOptions, (o) => o.value))}
             className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm"
             aria-label="Categories"
           >

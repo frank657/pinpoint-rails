@@ -14,13 +14,13 @@ import {
 import SearchSpotlight from './SearchSpotlight'
 
 export interface Workspace {
-  id: number
+  id: string
   name: string
   slug: string
 }
 
 export interface AppSharedProps {
-  currentUser: { id: number; email: string; admin: boolean } | null
+  currentUser: { id: string; email: string; admin: boolean } | null
   currentWorkspace: Workspace | null
   workspaces: Workspace[]
   flash: { notice: string | null; alert: string | null }
@@ -71,7 +71,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('keydown', handler)
   }, [])
 
-  const switchTo = (id: number) => {
+  const switchTo = (id: string) => {
     setWsOpen(false)
     router.post(`/workspaces/${id}/switch`)
   }

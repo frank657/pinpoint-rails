@@ -21,7 +21,7 @@ module App
       # (webhook-unreachable in dev, or delayed delivery in prod) self-heals on first visit.
       video.vod&.sync_from_provider! if video.upload? && !video.vod&.ready?
       render inertia: "videos/Show", props: {
-        video: video_json(video),
+        video: video_show_json(video),
         playback: playback_json(video),
         resumeSeconds: my_progress(video)&.resume_seconds || 0,
         notes: Note.for_video(video).includes(:categories, :tags, :positions, :techniques, :rich_text_body).map { |n| note_json(n) },
@@ -30,7 +30,7 @@ module App
         positions: Position.order(:name).map { |p| { id: p.id, name: p.name } },
         techniques: Technique.order(:name).map { |t| { id: t.id, name: t.name } },
         tags: Tag.order(:name).pluck(:name),
-        athletes: Athlete.order(:name).pluck(:name)
+        athletes: Athlete.order(:name).map { |a| athlete_json(a) }
       }
     end
 
@@ -66,6 +66,19 @@ module App
       redirect_to app_videos_path, inertia: { errors: { url: e.message } }
     end
 
+    # Import the chapters YouTube derives from the video description as Segments (one per
+    # timestamped line). Idempotent: skips any chapter whose start time already has a segment, so
+    # re-running only fills gaps. YouTube-only; needs the Data API key (else 0 chapters found).
+    def import_chapters
+      video = Video.find(params[:id])
+      authorize! video, to: :update?
+      return redirect_to(app_video_path(video), alert: "Chapters can only be imported from YouTube videos.") unless video.youtube?
+
+      created = import_youtube_chapters(video)
+      notice = created.positive? ? "Imported #{created} #{'segment'.pluralize(created)} from YouTube." : "No chapters found in the YouTube description."
+      redirect_to app_video_path(video), notice: notice
+    end
+
     # JSON poll for upload progress. Reconciles against the real Aliyun state on each poll so
     # the video advances past "uploading" even when the webhook can't reach the server (e.g. dev).
     def status
@@ -79,8 +92,10 @@ module App
       video = Video.find(params[:id])
       authorize! video, to: :update?
       video.title = params[:title].to_s.strip.presence || video.title if params.key?(:title)
+      video.description = params[:description].to_s if params.key?(:description)
       video.tag_names = name_list(params[:tag_names]) if params.key?(:tag_names)
       video.athlete_names = name_list(params[:athlete_names]) if params.key?(:athlete_names)
+      assign_video_taxonomy(video)
       video.save!
       redirect_to app_video_path(video)
     end
@@ -117,6 +132,33 @@ module App
       raw.is_a?(Array) ? raw : raw.to_s.split(",")
     end
 
+    # Video-level curated taxonomy (iteration 0007 scope addition) — categories, positions and
+    # techniques, mirroring the per-note assignment in NotesController#assign_taxonomy.
+    def assign_video_taxonomy(video)
+      video.categories = Category.where(id: params[:category_ids]) if params.key?(:category_ids)
+      video.positions  = Position.where(id: params[:position_ids]) if params.key?(:position_ids)
+      video.techniques = Technique.where(id: params[:technique_ids]) if params.key?(:technique_ids)
+    end
+
+    # Pull chapters from YouTube and create the ones we don't already have (matched by start
+    # time). Returns the number created. Positions continue after any existing segments.
+    def import_youtube_chapters(video)
+      chapters = Youtube::Chapters.call(video.youtube_id, duration: video.duration_seconds)
+      existing = video.segments.pluck(:start_seconds).to_set
+      fresh = chapters.reject { |c| existing.include?(c[:start_seconds]) }
+      base = (video.segments.maximum(:position) || -1) + 1
+
+      Video::Segment.transaction do
+        fresh.each_with_index do |c, i|
+          Video::Segment.create!(
+            video: video, title: c[:title],
+            start_seconds: c[:start_seconds], end_seconds: c[:end_seconds], position: base + i
+          )
+        end
+      end
+      fresh.size
+    end
+
     def video_json(video)
       {
         id: video.id,
@@ -132,6 +174,19 @@ module App
         tags: video.tags.map(&:name),
         createdAt: video.created_at.iso8601
       }
+    end
+
+    # The richer payload for the video show page: everything video_json carries, plus the
+    # rich-text description, video-level taxonomy and full athlete objects (avatar + initials).
+    def video_show_json(video)
+      video_json(video).merge(
+        description: sanitized_html(video.description),
+        segmentCount: video.segments.size,
+        categories: video.categories.map { |c| { id: c.id, name: c.name } },
+        positions: video.positions.map { |p| { id: p.id, name: p.name } },
+        techniques: video.techniques.map { |t| { id: t.id, name: t.name } },
+        athletes: video.athletes.map { |a| athlete_json(a) }
+      )
     end
 
     def playback_json(video)

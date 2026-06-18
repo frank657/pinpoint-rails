@@ -2,9 +2,9 @@ import { Head, Link } from '@inertiajs/react'
 import AppShell from '../../components/AppShell'
 import { formatTime } from '../../lib/time'
 
-interface Athlete { id: number; name: string }
+interface Athlete { id: string; name: string }
 interface VideoCard {
-  id: number
+  id: string
   title: string
   source: 'upload' | 'youtube'
   status: string

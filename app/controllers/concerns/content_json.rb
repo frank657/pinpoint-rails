@@ -56,4 +56,23 @@ module ContentJson
       position: segment.position
     }
   end
+
+  # An athlete with the bits the UI needs to render an avatar: the attached image URL when
+  # present, otherwise a coloured initials badge (iteration 0007 scope addition).
+  def athlete_json(athlete)
+    {
+      id: athlete.id,
+      name: athlete.name,
+      avatarUrl: (rails_blob_path(athlete.avatar) if athlete.avatar.attached?),
+      initials: athlete.initials,
+      hue: athlete.avatar_hue
+    }
+  end
+
+  # Video descriptions store rich-text HTML in a plain column; sanitize on the way out so the
+  # client can render it directly. (Action Text proper is deferred with the UUID pass — videos
+  # are still bigint-keyed; see docs/roadmap/iterations/0007.)
+  def sanitized_html(html)
+    ActionController::Base.helpers.sanitize(html.to_s).presence
+  end
 end

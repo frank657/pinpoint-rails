@@ -2,7 +2,7 @@ import { Head, Link } from '@inertiajs/react'
 import AppShell from '../../components/AppShell'
 import { formatTime } from '../../lib/time'
 
-interface Position { id: number; name: string; category: string; dominance: string }
+interface Position { id: string; name: string; category: string; dominance: string }
 interface NoteRow { id: string; title: string | null; videoId: number | null; startSeconds: number | null }
 
 export default function PositionShow({ position, notes }: { position: Position; notes: NoteRow[] }) {

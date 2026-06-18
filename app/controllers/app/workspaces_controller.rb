@@ -32,7 +32,7 @@ module App
       end
 
       workspace.destroy!
-      session[:current_workspace_id] = current_user.workspaces.first&.id
+      session[:current_workspace_id] = current_user.workspaces.order(:created_at).first&.id
       redirect_to app_root_path, notice: "Workspace deleted."
     end
 

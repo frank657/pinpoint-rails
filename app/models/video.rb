@@ -13,6 +13,9 @@ class Video < ApplicationRecord
   has_many :notes, dependent: :destroy
   has_many :segments, class_name: "Video::Segment", dependent: :destroy
   has_and_belongs_to_many :athletes, join_table: :video_athletes
+  has_and_belongs_to_many :categories, join_table: :video_categories
+  has_and_belongs_to_many :positions, join_table: :video_positions
+  has_and_belongs_to_many :techniques, join_table: :video_techniques
 
   validates :title, presence: true
   validates :youtube_id, presence: true, if: :youtube?
@@ -23,15 +26,12 @@ class Video < ApplicationRecord
   # --- Library filters & search (iteration 0006b) ---
   scope :search,      ->(q) { where("title ILIKE ?", "%#{sanitize_sql_like(q.to_s)}%") }
   scope :from_source, ->(s) { where(source: s) }
-  # Wrapped in a subquery (not a bare `joins`) so the outer relation stays join-free — otherwise
-  # a later `includes(:tags)` gets promoted to an eager-load JOIN that breaks on the polymorphic
-  # string taggable_id (varchar = bigint).
+  # Wrapped in a subquery (not a bare `joins`) so the outer relation stays join-free.
   scope :featuring, ->(name) { where(id: joins(:athletes).where(athletes: { name: name }).select(:id)) }
-  # Videos carry tags polymorphically with a STRING taggable_id, so videos.id (bigint) can't be
-  # SQL-joined against it directly — match via a casted subquery instead (iteration 0006a).
+  # Since the UUID conversion (ADR 0012) `taggings.taggable_id` is a real uuid, so a video's tags
+  # match directly against `videos.id` — no string-cast workaround.
   scope :with_tag, ->(name) {
-    where(id: Tagging.joins(:tag).where(taggable_type: "Video", tags: { name: name })
-                     .select(Arel.sql("taggable_id::bigint")))
+    where(id: Tagging.joins(:tag).where(taggable_type: "Video", tags: { name: name }).select(:taggable_id))
   }
   scope :added_between, ->(from, to) {
     rel = all

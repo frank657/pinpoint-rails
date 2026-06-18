@@ -4,7 +4,7 @@ import AppShell from '../components/AppShell'
 import { formatTime } from '../lib/time'
 
 interface NoteHit { id: string; title: string | null; videoId: number | null; startSeconds: number | null }
-interface VideoHit { id: number; title: string; source: 'upload' | 'youtube'; poster: string | null }
+interface VideoHit { id: string; title: string; source: 'upload' | 'youtube'; poster: string | null }
 interface Results { notes: NoteHit[]; videos: VideoHit[] }
 
 export default function Search({ q, results }: { q: string; results: Results }) {
