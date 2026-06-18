@@ -51,7 +51,9 @@ module App
       render json: { videoId: video.id }, status: :created
     end
 
-    # Inertia flow: paste a YouTube link.
+    # Inertia flow: paste a YouTube link. Also imports the video's chapters as Segments right away
+    # (one per timestamped description line) so the user lands on a pre-segmented timeline. The
+    # import is best-effort — a chapter-fetch failure must never block adding the video.
     def create_youtube
       result = Youtube::Ingest.call(params[:url])
       video = Video.create!(
@@ -61,7 +63,9 @@ module App
         duration_seconds: result.duration_seconds,
         uploaded_by: current_user
       )
-      redirect_to app_video_path(video), notice: "Video added."
+      imported = import_youtube_chapters_safely(video)
+      notice = imported.positive? ? "Video added — imported #{imported} #{'segment'.pluralize(imported)} from its chapters." : "Video added."
+      redirect_to app_video_path(video), notice: notice
     rescue Youtube::Ingest::InvalidUrl => e
       redirect_to app_videos_path, inertia: { errors: { url: e.message } }
     end
@@ -138,6 +142,14 @@ module App
       video.categories = Category.where(id: params[:category_ids]) if params.key?(:category_ids)
       video.positions  = Position.where(id: params[:position_ids]) if params.key?(:position_ids)
       video.techniques = Technique.where(id: params[:technique_ids]) if params.key?(:technique_ids)
+    end
+
+    # Best-effort wrapper for the create flow: never let a chapter-import hiccup fail the add.
+    def import_youtube_chapters_safely(video)
+      import_youtube_chapters(video)
+    rescue StandardError => e
+      Rails.logger.warn("[create_youtube] chapter import failed: #{e.class} #{e.message}")
+      0
     end
 
     # Pull chapters from YouTube and create the ones we don't already have (matched by start

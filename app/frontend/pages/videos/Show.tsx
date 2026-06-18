@@ -35,6 +35,13 @@ export default function VideoShow({
   const player = useRef<PlayerHandle>(null)
   const seek = (s: number) => player.current?.seek(s)
   const getCurrentTime = useCallback(() => player.current?.currentTime() ?? 0, [])
+  const [currentTime, setCurrentTime] = useState(0)
+
+  // Poll the player so the timeline can highlight the segment currently playing.
+  useEffect(() => {
+    const t = setInterval(() => setCurrentTime(getCurrentTime()), 500)
+    return () => clearInterval(t)
+  }, [getCurrentTime])
 
   // Resume where the user left off, then persist progress periodically (Axis 3, Phase 7).
   useEffect(() => {
@@ -60,7 +67,6 @@ export default function VideoShow({
         {/* left: player + below-video */}
         <div>
           <VideoPlayer ref={player} playback={playback} />
-          <p className="mt-2.5 text-[10.5px] text-faint">↑ scrub the player. Take a note from the bar pinned at the bottom, or use the panel → for segments.</p>
 
           <VideoDetails
             video={video}
@@ -81,6 +87,7 @@ export default function VideoShow({
           segments={segments}
           opts={opts}
           getCurrentTime={getCurrentTime}
+          currentTime={currentTime}
           onSeek={seek}
         />
       </div>

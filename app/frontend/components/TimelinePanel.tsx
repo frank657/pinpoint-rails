@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { router } from '@inertiajs/react'
 import { fmtTime, type Note, type Segment, type RouterPayload } from '../types/video'
 import { NoteIcon, PlayIcon } from './timeline/icons'
@@ -18,6 +18,7 @@ export default function TimelinePanel({
   segments,
   opts,
   getCurrentTime,
+  currentTime,
   onSeek,
 }: {
   videoId: string
@@ -25,6 +26,7 @@ export default function TimelinePanel({
   segments: Segment[]
   opts: TaxOptions
   getCurrentTime: () => number
+  currentTime: number
   onSeek: (s: number) => void
 }) {
   const [editMode, setEditMode] = useState(false)
@@ -58,6 +60,13 @@ export default function TimelinePanel({
     ...segments.map((s) => ({ t: 'seg' as const, start: s.startSeconds, seg: s })),
     ...loose.map((n) => ({ t: 'loose' as const, start: n.startSeconds as number, note: n })),
   ].sort((a, b) => a.start - b.start)
+
+  // The segment currently playing: contains the playhead in [start, end) (open-ended = start→∞).
+  // When several overlap, the latest-starting one wins (most specific).
+  const activeSegId = useMemo(() => {
+    const hits = segments.filter((s) => s.startSeconds <= currentTime && (s.endSeconds == null || currentTime < s.endSeconds))
+    return hits.length ? hits.reduce((a, b) => (b.startSeconds > a.startSeconds ? b : a)).id : null
+  }, [segments, currentTime])
 
   const empty = !segments.length && !notes.length
 
@@ -134,6 +143,7 @@ export default function TimelinePanel({
                     <SegCard
                       seg={it.seg}
                       notes={notes.filter((n) => n.segmentId === it.seg.id)}
+                      active={activeSegId === it.seg.id}
                       editMode={editMode}
                       editing={editing}
                       opts={opts}
@@ -289,13 +299,14 @@ function IconBtn({ title, onClick, children }: { title: string; onClick: (e: Rea
 
 // ── Segment card ─────────────────────────────────────────────────────────────
 function SegCard({
-  seg, notes, editMode, editing, opts, dropActive, onSeek,
+  seg, notes, active, editMode, editing, opts, dropActive, onSeek,
   onDragOverSeg, onDropSeg, setDragId,
   onEditSeg, onDelSeg, onSaveSeg,
   onEditNote, onDelNote, onDetachNote, onSaveNote, onCancelEdit,
 }: {
   seg: Segment
   notes: Note[]
+  active: boolean
   editMode: boolean
   editing: Editing
   opts: TaxOptions
@@ -321,16 +332,21 @@ function SegCard({
     <div
       onDragOver={editMode ? (e) => { e.preventDefault(); onDragOverSeg() } : undefined}
       onDrop={editMode ? (e) => { e.preventDefault(); onDropSeg() } : undefined}
-      className={`group my-2 overflow-hidden rounded-xl border bg-surface ${open ? 'border-dashed border-ember/45' : 'border-ember/30'} ${dropActive ? 'outline outline-2 -outline-offset-[3px] outline-dashed outline-ember' : ''}`}
+      className={`group my-2 overflow-hidden rounded-xl border bg-surface transition-shadow ${open ? 'border-dashed border-ember/45' : 'border-ember/30'} ${active ? 'ring-2 ring-ember shadow-[0_2px_12px_rgba(226,87,31,0.18)]' : ''} ${dropActive ? 'outline outline-2 -outline-offset-[3px] outline-dashed outline-ember' : ''}`}
     >
       <div
         onClick={() => onSeek(seg.startSeconds)}
         title="Play from here"
-        className={`flex cursor-pointer items-center gap-1.5 px-2.5 py-2 ${open ? 'bg-ember/[0.05] hover:bg-ember/[0.09]' : 'bg-ember/[0.08] hover:bg-ember/[0.13]'}`}
+        className={`flex cursor-pointer items-center gap-1.5 px-2.5 py-2 ${active ? 'bg-ember/[0.16]' : open ? 'bg-ember/[0.05] hover:bg-ember/[0.09]' : 'bg-ember/[0.08] hover:bg-ember/[0.13]'}`}
       >
         <span className="flex-none text-ember"><PlayIcon /></span>
         <span className="whitespace-nowrap rounded border border-ember/30 bg-ember/15 px-1.5 py-0.5 font-mono text-[10px] text-[#b2410f]">{chip}</span>
         <span className="text-[13px] font-semibold">{seg.title}</span>
+        {active && (
+          <span className="ml-1.5 inline-flex items-center gap-1 text-[9.5px] font-bold uppercase tracking-wide text-ember">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-ember" /> playing
+          </span>
+        )}
         <span className={`ml-auto flex gap-0.5 transition-opacity ${editing?.kind === 'seg' && editing.id === seg.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
           <IconBtn title="edit" onClick={(e) => { e.stopPropagation(); onEditSeg() }}>✎</IconBtn>
         </span>

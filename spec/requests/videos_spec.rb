@@ -13,6 +13,9 @@ RSpec.describe "Videos", type: :request do
   end
 
   describe "POST /videos/youtube" do
+    # Never hit the network for chapters — stub the seam (default: no chapters).
+    before { allow(Youtube::Chapters).to receive(:call).and_return([]) }
+
     it "ingests a YouTube link into a new video" do
       allow(Youtube::Ingest).to receive(:call).and_return(
         Youtube::Ingest::Result.new(youtube_id: "abc12345678", title: "Closed Guard", duration_seconds: 120, thumbnail_url: nil)
@@ -26,6 +29,34 @@ RSpec.describe "Videos", type: :request do
       expect(video).to be_youtube
       expect(video.title).to eq("Closed Guard")
       expect(response).to redirect_to(app_video_path(video))
+    end
+
+    it "imports the video's chapters as segments on creation" do
+      allow(Youtube::Ingest).to receive(:call).and_return(
+        Youtube::Ingest::Result.new(youtube_id: "abc12345678", title: "Closed Guard", duration_seconds: 300, thumbnail_url: nil)
+      )
+      allow(Youtube::Chapters).to receive(:call).and_return([
+        { start_seconds: 0.0, end_seconds: 60.0, title: "Intro" },
+        { start_seconds: 60.0, end_seconds: 300.0, title: "Sweep" }
+      ])
+
+      post app_youtube_videos_path, params: { url: "https://youtu.be/abc12345678" }
+
+      video = Video.last
+      expect(video.segments.order(:position).pluck(:title)).to eq([ "Intro", "Sweep" ])
+      expect(video.segments.order(:position).first).to have_attributes(start_seconds: 0.0, end_seconds: 60.0)
+    end
+
+    it "still adds the video when chapter import fails (best-effort)" do
+      allow(Youtube::Ingest).to receive(:call).and_return(
+        Youtube::Ingest::Result.new(youtube_id: "abc12345678", title: "Closed Guard", duration_seconds: 120, thumbnail_url: nil)
+      )
+      allow(Youtube::Chapters).to receive(:call).and_raise(StandardError, "boom")
+
+      expect {
+        post app_youtube_videos_path, params: { url: "https://youtu.be/abc12345678" }
+      }.to change(Video, :count).by(1)
+      expect(response).to redirect_to(app_video_path(Video.last))
     end
 
     it "reports an error for a non-YouTube link" do

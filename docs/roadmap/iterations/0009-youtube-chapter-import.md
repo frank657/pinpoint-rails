@@ -2,6 +2,11 @@
 
 > **Status:** ✅ shipped · **Owner:** Frank · **Started:** 2026-06-18 · **Shipped:** 2026-06-18
 > Links: ADR 0011 (note↔segment adoption) · builds on iteration 0007
+>
+> **Update (2026-06-18):** import now also runs **automatically when a YouTube video is created**
+> (`App::VideosController#create_youtube` → `import_youtube_chapters_safely`), so pasting a link
+> lands you on a pre-segmented timeline. The original `import_chapters` action stays as the
+> idempotent re-import path. Best-effort: a chapter-fetch failure never blocks adding the video.
 
 ## Goal & context
 
