@@ -78,24 +78,6 @@ export default function VideoDetails({
         <span>{noteCount} {noteCount === 1 ? 'note' : 'notes'} · {segmentCount} {segmentCount === 1 ? 'segment' : 'segments'}</span>
       </div>
 
-      {/* description */}
-      {field === 'description' ? (
-        <Row label="Description" editing>
-          <div>
-            <RichTextEditor value={desc} onChange={setDesc} placeholder="Add a description for this video…" />
-            <div className="mt-1.5"><DoneButton onClick={done} /></div>
-          </div>
-        </Row>
-      ) : (
-        <ReadRow label="Description" onClick={() => open('description')}>
-          {video.description ? (
-            <div className="prose prose-sm max-w-none pt-0.5 text-[13px] leading-relaxed text-ink [&_p]:my-0" dangerouslySetInnerHTML={{ __html: video.description }} />
-          ) : (
-            <AddHint>+ Add description</AddHint>
-          )}
-        </ReadRow>
-      )}
-
       <TaxRow
         label="Categories" field="categories" kind="cat" open={open} done={done} editing={field === 'categories'}
         options={allCategories.map(refToItem)} value={cats} onChange={setCats}
@@ -125,6 +107,24 @@ export default function VideoDetails({
         options={allTags.map(tagToItem)} value={tags} onChange={setTags}
         chips={video.tags.map((t) => <span key={t} className="text-[11.5px] text-gold">#{t}</span>)}
       />
+
+      {/* description — at the bottom, below tags */}
+      {field === 'description' ? (
+        <Row label="Description" editing>
+          <div>
+            <RichTextEditor value={desc} onChange={setDesc} placeholder="Add a description for this video…" />
+            <div className="mt-1.5"><DoneButton onClick={done} /></div>
+          </div>
+        </Row>
+      ) : (
+        <ReadRow label="Description" onClick={() => open('description')}>
+          {video.description ? (
+            <div className="prose prose-sm max-w-none pt-0.5 text-[13px] leading-relaxed text-ink [&_p]:my-0" dangerouslySetInnerHTML={{ __html: video.description }} />
+          ) : (
+            <AddHint>+ Add description</AddHint>
+          )}
+        </ReadRow>
+      )}
     </div>
   )
 }

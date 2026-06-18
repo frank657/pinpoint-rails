@@ -49,8 +49,8 @@ function stripHtml(html: string): string {
 
 const labelCls = 'mt-2 mb-0.5 block text-[11px] font-semibold text-muted'
 
-// Shared taxonomy + body fields (used by both the create form and inline editor).
-function TaxFields({ opts, draft, setDraft }: { opts: TaxOptions; draft: NoteDraft; setDraft: (d: NoteDraft) => void }) {
+// Shared taxonomy + body fields (used by the inline editor, and the quick-capture footer).
+export function TaxFields({ opts, draft, setDraft }: { opts: TaxOptions; draft: NoteDraft; setDraft: (d: NoteDraft) => void }) {
   return (
     <>
       <label className={labelCls}>Categories</label>

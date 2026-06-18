@@ -4,9 +4,9 @@ import axios from 'axios'
 import { PencilSimple, Check, X } from '@phosphor-icons/react'
 import AppShell from '../../components/AppShell'
 import VideoPlayer, { type Playback, type PlayerHandle } from '../../components/VideoPlayer'
-import ChapterStrip from '../../components/ChapterStrip'
 import VideoDetails from '../../components/VideoDetails'
 import TimelinePanel from '../../components/TimelinePanel'
+import QuickCapture from '../../components/QuickCapture'
 import type { VideoDetail, Note, Segment, TaxonomyRef, Athlete } from '../../types/video'
 
 export default function VideoShow({
@@ -35,7 +35,6 @@ export default function VideoShow({
   const player = useRef<PlayerHandle>(null)
   const seek = (s: number) => player.current?.seek(s)
   const getCurrentTime = useCallback(() => player.current?.currentTime() ?? 0, [])
-  const [currentTime, setCurrentTime] = useState(0)
 
   // Resume where the user left off, then persist progress periodically (Axis 3, Phase 7).
   useEffect(() => {
@@ -49,12 +48,6 @@ export default function VideoShow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [video.id])
 
-  // Poll the player so the chapter-strip playhead tracks playback.
-  useEffect(() => {
-    const t = setInterval(() => setCurrentTime(getCurrentTime()), 500)
-    return () => clearInterval(t)
-  }, [getCurrentTime])
-
   const opts = { categories, positions, techniques, tags }
 
   return (
@@ -67,7 +60,7 @@ export default function VideoShow({
         {/* left: player + below-video */}
         <div>
           <VideoPlayer ref={player} playback={playback} />
-          <p className="mt-2.5 text-[10.5px] text-faint">↑ scrub the player, then add a note/segment — Start is captured from the playhead (editable).</p>
+          <p className="mt-2.5 text-[10.5px] text-faint">↑ scrub the player. Take a note from the bar pinned at the bottom, or use the panel → for segments.</p>
 
           <VideoDetails
             video={video}
@@ -79,7 +72,6 @@ export default function VideoShow({
             noteCount={notes.length}
             segmentCount={segments.length}
           />
-          <ChapterStrip segments={segments} durationSeconds={video.durationSeconds} currentTime={currentTime} onSeek={seek} />
         </div>
 
         {/* right: unified timeline */}
@@ -92,6 +84,10 @@ export default function VideoShow({
           onSeek={seek}
         />
       </div>
+
+      {/* clears the fixed quick-capture footer */}
+      <div className="h-28" />
+      <QuickCapture videoId={video.id} getCurrentTime={getCurrentTime} opts={opts} />
     </AppShell>
   )
 }

@@ -145,13 +145,14 @@
   .qc-row{display:flex;align-items:center;gap:9px}
   .qc-plus{width:30px;height:30px;border-radius:8px;background:var(--ember);color:#fff;display:grid;place-items:center;font-size:18px;flex:none}
   .qc-inputwrap{position:relative;flex:1;display:flex;align-items:center}
-  .qc-title{width:100%;border:1px solid var(--line);border-radius:12px;padding:19px 14px;font-size:14px;background:var(--surface)}
+  .qc-title{width:100%;border:1px solid var(--line);border-radius:12px;padding:13px 14px;font-size:14px;background:var(--surface)}
   .qc-title:focus{outline:none;border-color:var(--ember)}
   .qc-inputwrap.has-input .qc-title{padding-right:130px}
   .qc-add{position:absolute;right:6px;top:6px;bottom:6px;display:none;align-items:center;gap:7px;background:var(--ember);color:#fff;border:none;border-radius:8px;padding:0 16px;font-weight:600;font-size:13px;line-height:1}.qc-add:hover{background:#c8480f}
   .qc-inputwrap.has-input .qc-add{display:inline-flex}
   .qc-add kbd{font-family:ui-monospace,monospace;font-size:10px;background:rgba(255,255,255,.22);border-radius:4px;padding:1px 4px}
   .qc-cluster{display:inline-flex;align-items:center;gap:7px;flex:none}
+  .qc-div{width:1px;height:20px;background:var(--line);flex:none}
   .qc-tgroup{display:inline-flex;align-items:center;gap:6px;flex:none}
   .qc-tlabel{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
   .qc-tinput{width:58px;border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:11.5px;font-family:ui-monospace,monospace;background:var(--surface);color:var(--ink);text-align:center}
@@ -251,7 +252,8 @@
             </div>
             <button class="qc-reset" id="qcReset">⟲ now</button>
           </div>
-          <div class="qc-cluster" style="margin-left:auto">
+          <span class="qc-div"></span>
+          <div class="qc-cluster">
             <button class="qc-endbtn" id="qcAddEnd">+ end time</button>
             <span class="qc-tgroup" id="qcEndGroup" style="display:none">
               <span class="qc-tlabel">end</span>
@@ -262,7 +264,6 @@
           </div>
         </div>
         <div class="qc-row">
-          <span class="qc-plus">+</span>
           <div class="qc-inputwrap" id="qcInputWrap">
             <input type="text" class="qc-title" id="qcTitle" placeholder="Take a note at the current time…">
             <button class="qc-add" id="qcAdd">Add note <kbd>⌘⏎</kbd></button>

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { router } from '@inertiajs/react'
 import { fmtTime, type Note, type Segment, type RouterPayload } from '../types/video'
 import { NoteIcon, PlayIcon } from './timeline/icons'
-import { NoteCreateForm, SegCreateForm, NoteInlineEditor, SegInlineEditor, type TaxOptions } from './timeline/forms'
+import { SegCreateForm, NoteInlineEditor, SegInlineEditor, type TaxOptions } from './timeline/forms'
 
 type Editing = { kind: 'note' | 'seg'; id: string } | null
 
@@ -28,15 +28,12 @@ export default function TimelinePanel({
   onSeek: (s: number) => void
 }) {
   const [editMode, setEditMode] = useState(false)
-  const [noteFormAt, setNoteFormAt] = useState<number | null>(null)
   const [segFormAt, setSegFormAt] = useState<number | null>(null)
   const [editing, setEditing] = useState<Editing>(null)
   const [dragId, setDragId] = useState<string | null>(null)
   const [dropKey, setDropKey] = useState<string | null>(null)
 
   const reload = { preserveScroll: true, preserveState: true as const }
-  const addNote = (payload: RouterPayload) =>
-    router.post('/notes', { video_id: videoId, ...payload }, { ...reload, onSuccess: () => setNoteFormAt(null) })
   const addSeg = (payload: RouterPayload) =>
     router.post('/segments', { video_id: videoId, ...payload }, { ...reload, onSuccess: () => setSegFormAt(null) })
   const saveNote = (id: string, payload: RouterPayload) =>
@@ -80,17 +77,13 @@ export default function TimelinePanel({
     <div className="flex max-h-[78vh] flex-col overflow-hidden rounded-2xl border border-line bg-surface">
       {/* head */}
       <div className="border-b border-line p-3">
-        <button onClick={() => setNoteFormAt(Math.floor(getCurrentTime()))} className="w-full rounded-[9px] bg-ember px-3 py-2 text-[13px] font-semibold text-white hover:bg-[#c8480f]">
-          + Note at current time
-        </button>
-        {noteFormAt != null && (
-          <NoteCreateForm opts={opts} currentTime={noteFormAt} onSubmit={addNote} onCancel={() => setNoteFormAt(null)} />
-        )}
-        <div className="mt-2 flex items-center gap-2">
-          <button onClick={() => setSegFormAt(Math.floor(getCurrentTime()))} className="rounded-[9px] border border-line bg-surface px-2.5 py-1.5 text-xs font-semibold text-muted hover:text-ink">+ Segment</button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setSegFormAt(Math.floor(getCurrentTime()))} className="flex-1 rounded-[9px] bg-ember px-3 py-2 text-[13px] font-semibold text-white hover:bg-[#c8480f]">
+            + Segment
+          </button>
           <button
             onClick={() => setEditMode((v) => !v)}
-            className={`ml-auto inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11.5px] font-bold ${editMode ? 'border-ember bg-ember text-white' : 'border-line bg-surface text-muted'}`}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11.5px] font-bold ${editMode ? 'border-ember bg-ember text-white' : 'border-line bg-surface text-muted'}`}
           >
             <span className="h-[7px] w-[7px] rounded-full bg-current" /> {editMode ? 'Done' : 'Organize'}
           </button>
