@@ -183,9 +183,7 @@ GEM
       domain_name (~> 0.5)
     i18n (1.14.8)
       concurrent-ruby (~> 1.0)
-    image_processing (1.14.0)
-      mini_magick (>= 4.9.5, < 6)
-      ruby-vips (>= 2.0.17, < 3)
+    image_processing (2.0.2)
     inertia_rails (3.21.1)
       railties (>= 6)
     io-console (0.8.2)
@@ -243,8 +241,6 @@ GEM
       logger
       mime-types-data (~> 3.2025, >= 3.2025.0507)
     mime-types-data (3.2026.0414)
-    mini_magick (5.3.1)
-      logger
     mini_mime (1.1.5)
     minitest (6.0.6)
       drb (~> 2.0)
@@ -566,7 +562,7 @@ DEPENDENCIES
   factory_bot_rails
   faker
   friendly_id (~> 5.5)
-  image_processing (~> 1.2)
+  image_processing (~> 2.0)
   inertia_rails (~> 3.0)
   kamal
   kaminari
