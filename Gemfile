@@ -36,7 +36,7 @@ gem "ruby-vips"
 # --- Domain stack (ported from method-channel, see docs/decisions/0007) ---
 
 # Authentication (session-based; NO JWT — see docs/decisions/0001)
-gem "devise", "~> 4.9"
+gem "devise", "~> 5.0"
 # Authorization (policy classes — see docs/decisions/0008)
 gem "action_policy", "~> 0.7"
 # Multi-tenancy scoped to Workspace (see docs/decisions/0002)
